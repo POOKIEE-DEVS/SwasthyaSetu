@@ -1,0 +1,32 @@
+# Runtime dependencies. Test and lint tooling lives in requirements-dev.txt.
+
+# --- Web framework & ASGI ---
+fastapi>=0.115,<1
+uvicorn[standard]>=0.32,<1
+gunicorn>=23,<24
+python-multipart>=0.0.12,<1
+
+# --- Validation & settings ---
+pydantic>=2.9,<3
+pydantic-settings>=2.6,<3
+
+# --- Database & migrations ---
+sqlmodel>=0.0.22,<0.1
+sqlalchemy[asyncio]>=2.0.36,<3
+alembic>=1.14,<2
+asyncpg>=0.30,<0.31
+psycopg[binary]>=3.2,<4
+
+# --- Cache, sessions & task queue ---
+redis[hiredis]>=5.2,<6
+celery[redis]>=5.4,<6
+
+# --- Auth (consumed from Week 3) ---
+pyjwt>=2.10,<3
+argon2-cffi>=23.1,<24
+
+# --- AI engine transport (consumed from Week 9) ---
+# MedGemma is reached over HTTP (Ollama locally, hosted endpoint in prod);
+# whisper.cpp and the TTS engine are invoked as on-device subprocesses, so
+# they need no Python client library.
+httpx>=0.27,<1
