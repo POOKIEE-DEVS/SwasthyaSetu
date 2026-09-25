@@ -117,8 +117,8 @@
   --color-triage-red: var(--triage-red);
   --color-triage-red-foreground: var(--triage-red-foreground);
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: var(--font-geist-sans), var(--font-devanagari), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

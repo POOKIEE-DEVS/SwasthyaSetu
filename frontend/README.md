@@ -1,57 +1,27 @@
-# SwasthyaSetu — Frontend
+# SwasthyaSetu: frontend
 
-Next.js (App Router) configured as a Progressive Web App. TypeScript, Tailwind CSS v4,
-shadcn/ui, and Zustand.
-
-See the [root README](../README.md) to run the whole stack with Docker Compose, or
-[docs/architecture.md](../docs/architecture.md) for the system design.
-
-## Development
+Next.js (App Router) built as a **static export** and served by the backend
+from the same origin in production. TypeScript, Tailwind CSS v4, shadcn/ui,
+and Zustand.
 
 ```bash
+cp .env.example .env.local   # points the dev server at the API on :8000
 npm install
-npm run dev        # http://localhost:3000
+npm run dev                  # http://localhost:3000
+npm run lint && npm run typecheck && npm run build   # build writes out/
 ```
-
-Copy `.env.example` to `.env.local` and point `NEXT_PUBLIC_API_URL` /
-`NEXT_PUBLIC_WS_URL` at your backend.
-
-```bash
-npm run lint       # eslint
-npm run typecheck  # tsc --noEmit
-npm run build      # production build (standalone output for Docker)
-```
-
-## Layout
 
 | Path | Contents |
 |---|---|
-| `app/` | App Router pages and layouts |
-| `components/ui/` | shadcn/ui components (`npx shadcn@latest add <name>` to add more) |
-| `lib/utils.ts` | `cn()` — class merging |
-| `lib/store/` | Zustand stores |
-| `public/sw.js` | Service worker — offline caching |
-| `public/manifest.webmanifest` | PWA manifest |
+| `app/` | `/` role picker, `/patient/`, `/doctor/` |
+| `components/chat/` | Chat panel with the AI assistant |
+| `components/call/video-call.tsx` | Call screen: remote and self video, controls |
+| `components/patient/`, `components/doctor/` | Each role's flow |
+| `lib/use-call.ts` | WebRTC: media, peer connection, signalling, reconnect |
+| `lib/api.ts` | Backend client (same origin unless `NEXT_PUBLIC_API_URL` is set) |
+| `lib/store/chat.ts` | Chat state (Zustand, kept in sessionStorage) |
+| `lib/session.ts` | Active call ticket, so a refresh rejoins the call |
 
-## Styling
-
-Tailwind v4 is configured in CSS, not JavaScript — the theme lives in
-[`app/globals.css`](app/globals.css) and there is no `tailwind.config.js`.
-
-Alongside the usual shadcn/ui tokens, the theme defines the three emergency levels from
-[architecture §4](../docs/architecture.md#4-emergency-detection-layer) as
-`--triage-green`, `--triage-yellow`, and `--triage-red`. Use those tokens (and the
-`emergency` button variant) rather than picking a red — a Red-level triage result must
-never be rendered in a shade that reads as merely a warning.
-
-## PWA and offline
-
-The service worker is registered in production only, from
-[`components/service-worker-registrar.tsx`](components/service-worker-registrar.tsx). It
-caches the app shell cache-first, first-aid articles stale-while-revalidate, and
-everything else network-first — doctor availability and triage results must never be
-served stale.
-
-To test it, run a production build (`npm run build && npm start`), then use DevTools →
-Application → Service Workers, or throttle to Offline. `CACHE_VERSION` in
-[`public/sw.js`](public/sw.js) must be bumped whenever the worker or the shell changes.
+The three emergency levels are theme tokens (`--triage-green`, `-yellow`,
+`-red`) in `app/globals.css`. Use them, and the `emergency` button variant,
+rather than ad-hoc reds.
