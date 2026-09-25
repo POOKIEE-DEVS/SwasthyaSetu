@@ -1,5 +1,10 @@
-"""HTTP and WebSocket transport: routing, encoding, and dependencies.
+"""HTTP routers."""
 
-This layer stays free of business logic -- that belongs in ``app.services``
-and ``app.ai``, which the routers only dispatch to.
-"""
+from fastapi import APIRouter
+
+from app.api import chat, consultations, health
+
+api_router = APIRouter()
+api_router.include_router(health.router)
+api_router.include_router(chat.router)
+api_router.include_router(consultations.router)
