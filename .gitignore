@@ -1,4 +1,4 @@
-# Environment files — real secrets live here; only .env.example is committed
+# Secrets live here; only .env.example files are committed
 .env
 .env.*
 !.env.example
@@ -13,7 +13,6 @@ __pycache__/
 venv/
 .pytest_cache/
 .ruff_cache/
-.mypy_cache/
 
 # Node / Next.js
 node_modules/
@@ -21,13 +20,10 @@ frontend/.next/
 frontend/out/
 frontend/next-env.d.ts
 
-# Local model weights — MedGemma, whisper.cpp, and the Nepali TTS voice are
-# hundreds of megabytes and are fetched, not committed. Anchored to the repo
-# root so it cannot swallow backend/app/models/, which is source.
-/models/
+# Model weights are downloaded by the Space, never committed.
 *.gguf
+*.safetensors
 *.onnx
-*.bin
 
 # Editors & OS
 .DS_Store

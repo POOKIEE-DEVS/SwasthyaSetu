@@ -1,0 +1,17 @@
+.git
+.github
+**/node_modules
+**/.next
+frontend/out
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.env
+**/.env.*
+!**/.env.example
+backend/tests
+docs
+model-space
+scripts
+*.pdf
