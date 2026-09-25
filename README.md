@@ -1,103 +1,89 @@
 # SwasthyaSetu
 
-*The bridge to health* · Built by team **Pookiedevs** for the Student Partnership Program.
+*The bridge to health* · स्वास्थ्य सेतु · Built by team **Pookiedevs**.
 
-**SwasthyaSetu** is a healthcare-access platform for communities where qualified medical
-help is far away, unreliable, or out of reach. It connects patients to volunteering
-doctors through WebRTC video consultation, provides AI-assisted first-aid triage grounded
-in curated medical sources, and stays useful offline — because the moments when guidance
-matters most are often the moments connectivity is weakest.
+First-aid guidance from an AI assistant, and a live video call with a volunteer
+doctor, for communities where medical help is far away.
 
-- **Phase III functional requirements and technology specification:**
-  [docs/SwasthyaSetu-Phase3-Requirements.pdf](docs/SwasthyaSetu-Phase3-Requirements.pdf)
-- **System design, data model, and API shape:** [docs/architecture.md](docs/architecture.md)
-- **20-week roadmap and weekly progress:** [docs/roadmap.md](docs/roadmap.md) · working
-  agreement and active week in [CLAUDE.md](CLAUDE.md)
-- **Phase-1 proposal and meeting minutes:**
-  [POOKIEE-DEVS/SwasthyaSetu-Phase-1](https://github.com/POOKIEE-DEVS/SwasthyaSetu-Phase-1)
+**The demo flow:**
+
+1. A patient describes what's happening, in **English or Nepali**. **MedGemma**
+   replies with first-aid steps. Emergencies immediately show *Call 102* and
+   *Talk to a doctor*.
+2. The patient requests a doctor and can share the chat, so they don't have to
+   repeat themselves.
+3. A volunteer doctor, online on another laptop, is alerted, reads the chat,
+   and accepts.
+4. They talk on a live **WebRTC video call**, with mute, camera off, and hang
+   up. If there's no camera, the call continues as voice-only.
 
 ## Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js (React) as a PWA · TypeScript · Tailwind CSS · shadcn/ui · Zustand |
-| Backend | Python · FastAPI · Uvicorn / Gunicorn |
-| Data | PostgreSQL · SQLModel / SQLAlchemy · Alembic · Redis |
-| Async | Celery (background tasks), Redis as broker |
-| Real-time | Native FastAPI WebSockets · WebRTC over STUN/TURN (coturn) |
-| AI & Edge ML | MedGemma (clinical triage) · whisper.cpp (Nepali STT) · Nepali TTS |
+| Frontend | Next.js (static export, installable PWA) · TypeScript · Tailwind CSS · shadcn/ui · Zustand |
+| Backend | Python · FastAPI · Uvicorn (serves the API, WebSockets, and the frontend from one origin) |
+| Real-time | Native FastAPI WebSockets · WebRTC with STUN/TURN (Cloudflare) |
+| AI | MedGemma 1.5 4B (`google/medgemma-1.5-4b-it`) on a Hugging Face GPU Space |
 
-## Running the stack
+How it fits together: [docs/architecture.md](docs/architecture.md).
 
-Prerequisite: [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or any
-Docker Engine with Compose v2).
+## Run it locally
 
 ```bash
-docker compose up --build
-```
-
-| Service | URL | What you should see |
-|---|---|---|
-| frontend | http://localhost:3000 | Placeholder home page (installable as a PWA) |
-| backend | http://localhost:8000/health | `{"status":"ok","service":"backend",...}` |
-| backend | http://localhost:8000/health/ready | Postgres + Redis dependency report |
-| backend | http://localhost:8000/docs | Interactive OpenAPI docs |
-| worker | — | Celery worker consuming the `ai` and `notifications` queues |
-| postgres | localhost:5432 | Accepts connections (schema applied in Week 2) |
-| redis | localhost:6379 | Cache, sessions, and Celery broker |
-| coturn | localhost:3478 | STUN/TURN for WebRTC teleconsultation |
-
-Configuration is environment-driven: compose runs with safe dev defaults out of the box,
-and each service documents its variables in its own `.env.example` (copy to `.env` to
-override — real `.env` files are gitignored).
-
-### Running without Docker
-
-```bash
-# Backend — needs PostgreSQL and Redis reachable at the URLs in backend/.env
+# Backend (API on :8000)
 cd backend
-python -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
-.venv/bin/uvicorn app.main:app --reload
-.venv/bin/celery -A app.core.celery_app:celery_app worker --loglevel=info
+python -m venv .venv
+.venv/Scripts/pip install -r requirements-dev.txt     # macOS/Linux: .venv/bin/pip
+cp .env.example .env                                  # set HF_SPACE_ID and HF_TOKEN
+.venv/Scripts/uvicorn app.main:app --reload
 
-# Frontend
-cd frontend && npm install && npm run dev
+# Frontend (on :3000), in a second terminal
+cd frontend
+cp .env.example .env.local
+npm install
+npm run dev
 ```
 
-### Database migrations
+Open <http://localhost:3000>. Use two browser windows, one as the patient and
+one as the doctor. Or run the production image with `docker compose up --build`
+and open <http://localhost:8000>.
 
-The schema is written but not yet applied — that lands in Week 2.
+## Deploy and demo
+
+- **[docs/deployment.md](docs/deployment.md)**: MedGemma Space → Cloudflare
+  TURN → Render. About an hour the first time.
+- **[docs/demo.md](docs/demo.md)**: the 5-minute script, pre-demo checklist,
+  and what to do if something fails on stage.
+- **Before every rehearsal:** `python scripts/smoke_test.py <your-url>` runs
+  the whole flow in two real Chrome windows and reports each step.
+
+## Checks
 
 ```bash
-docker compose exec backend alembic upgrade head     # apply
-docker compose exec backend alembic downgrade base   # revert
-cd backend && alembic upgrade head --sql             # inspect the DDL, no database needed
-```
-
-### Tests and checks
-
-`make check` runs everything CI runs; `make help` lists every target.
-
-```bash
-make check                 # backend lint + tests, frontend lint/typecheck/build, compose
-
-# or directly:
-cd backend  && ruff check app tests alembic && ruff format --check app tests && pytest
+cd backend  && .venv/Scripts/ruff check app tests ../model-space ../scripts && .venv/Scripts/pytest
 cd frontend && npm run lint && npm run typecheck && npm run build
 ```
+
+`make help` lists shortcuts (on Windows, run `make` from Git Bash). CI also
+builds the Docker image and checks that it boots and serves the pages.
 
 ## Repository layout
 
 | Path | Contents |
 |---|---|
-| [backend/](backend/) | FastAPI — API, auth, matching, consultations, notifications, admin, AI engine, workers |
-| [backend/app/ai/](backend/app/ai/) | Triage pipeline, MedGemma client, whisper.cpp STT, Nepali TTS, knowledge base |
-| [backend/app/realtime/](backend/app/realtime/) | WebSocket channels and WebRTC signalling |
-| [backend/alembic/versions/](backend/alembic/versions/) | Versioned PostgreSQL schema |
-| [frontend/](frontend/) | Next.js PWA (TypeScript) — patient, doctor, and admin views |
-| [docs/](docs/) | Architecture and roadmap |
-| [.github/workflows/](.github/workflows/) | CI — lint, test, migrations, build |
-| [Makefile](Makefile) | Dev commands — `make help` |
+| [backend/](backend/) | FastAPI app: chat, consultations, WebSocket signalling, MedGemma client |
+| [frontend/](frontend/) | Next.js app: patient and doctor pages, chat, video call |
+| [model-space/](model-space/) | The Hugging Face Space that serves MedGemma |
+| [scripts/smoke_test.py](scripts/smoke_test.py) | Two-browser end-to-end check of the demo |
+| [docs/](docs/) | Architecture, deployment, demo playbook, Phase III requirements |
+| [Dockerfile](Dockerfile) · [render.yaml](render.yaml) | One image; one Render service |
+
+## Important
+
+SwasthyaSetu gives **first-aid information, not a medical diagnosis**. In an
+emergency in Nepal, call **102**. This is a hackathon demo: it has no user
+accounts yet, and the doctor side is open to anyone with the link.
 
 ## Team
 
