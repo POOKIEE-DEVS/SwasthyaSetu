@@ -1,0 +1,6 @@
+# Gradio itself is installed by the Space SDK (version pinned in README.md).
+torch
+torchvision
+transformers>=4.56
+accelerate
+pillow
