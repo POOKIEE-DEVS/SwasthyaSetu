@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Noto_Sans_Devanagari } from "next/font/google";
 
 import { ConnectionStatus } from "@/components/connection-status";
-import { ServiceWorkerRegistrar } from "@/components/service-worker-registrar";
 
 import "./globals.css";
 
@@ -11,9 +10,12 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+// Geist has no Devanagari glyphs. This keeps Nepali text consistent across
+// devices instead of falling back to whatever the OS has.
+const notoDevanagari = Noto_Sans_Devanagari({
+  variable: "--font-devanagari",
+  subsets: ["devanagari"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -22,14 +24,9 @@ export const metadata: Metadata = {
     template: "%s · SwasthyaSetu",
   },
   description:
-    "The bridge to health — emergency consultations with volunteer doctors and AI-assisted first-aid triage, available offline.",
+    "First-aid guidance from an AI assistant and a live video call with a volunteer doctor.",
   applicationName: "SwasthyaSetu",
   manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    title: "SwasthyaSetu",
-    statusBarStyle: "default",
-  },
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -40,23 +37,18 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Fills the notch area on an installed PWA.
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0d7f8c" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b2027" },
-  ],
+  themeColor: "#0d7f8c",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${geistSans.variable} ${notoDevanagari.variable}`}>
       <body className="min-h-dvh font-sans">
         <ConnectionStatus />
         {children}
-        <ServiceWorkerRegistrar />
       </body>
     </html>
   );
