@@ -1,0 +1,55 @@
+{
+  "name": "SwasthyaSetu — The bridge to health",
+  "short_name": "SwasthyaSetu",
+  "description": "Emergency doctor consultations and AI-assisted first-aid triage, available offline.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbfdfd",
+  "theme_color": "#0d7f8c",
+  "lang": "ne",
+  "dir": "ltr",
+  "categories": ["health", "medical"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Emergency help",
+      "short_name": "Emergency",
+      "description": "Reach a volunteer doctor immediately.",
+      "url": "/emergency"
+    },
+    {
+      "name": "First-aid guides",
+      "short_name": "First aid",
+      "description": "Cached first-aid articles, available offline.",
+      "url": "/articles"
+    }
+  ]
+}
