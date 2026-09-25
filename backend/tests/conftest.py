@@ -1,68 +1,51 @@
-"""Shared fixtures.
-
-These tests run without Postgres or Redis: dependencies are overridden with
-fakes so the suite stays fast and CI needs no service containers. Tests that
-exercise real SQL arrive in Week 2 alongside the seed script.
-"""
+"""Shared fixtures. No network: the model and TURN provider are faked."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator
 
 import pytest
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.api.deps import get_redis, get_session
+from app.ai.medgemma import medgemma
+from app.core.config import settings
 from app.main import create_app
+from app.realtime.websocket import reset_realtime_state
+from app.services import chat_rate_limiter, consultations
 
 
-class FakeResult:
-    """Stand-in for the object `AsyncSession.execute` resolves to."""
-
-    def scalar(self) -> int:
-        return 1
-
-
-class FakeSession:
-    """Minimal async session: readiness only ever runs `SELECT 1`."""
-
-    def __init__(self, *, fail: bool = False) -> None:
-        self._fail = fail
-
-    async def execute(self, *_args, **_kwargs) -> FakeResult:
-        if self._fail:
-            raise ConnectionRefusedError("connection to postgres refused")
-        return FakeResult()
-
-
-class FakeRedis:
-    def __init__(self, *, fail: bool = False) -> None:
-        self._fail = fail
-
-    async def ping(self) -> bool:
-        if self._fail:
-            raise ConnectionError("connection to redis refused")
-        return True
-
-
-def build_app(*, postgres_fails: bool = False, redis_fails: bool = False) -> FastAPI:
-    """An app whose backing services are fakes with controllable failure."""
-    app = create_app()
-
-    async def _session():
-        yield FakeSession(fail=postgres_fails)
-
-    async def _redis():
-        return FakeRedis(fail=redis_fails)
-
-    app.dependency_overrides[get_session] = _session
-    app.dependency_overrides[get_redis] = _redis
-    return app
+@pytest.fixture(autouse=True)
+def clean_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    # No TURN provider, no static frontend, unless a test opts in.
+    monkeypatch.setattr(settings, "cloudflare_turn_key_id", "")
+    monkeypatch.setattr(settings, "cloudflare_turn_api_token", "")
+    monkeypatch.setattr(settings, "turn_urls", "")
+    monkeypatch.setattr(settings, "static_dir", "does-not-exist")
+    # Never reach a real Space, even if a local backend/.env configures one.
+    monkeypatch.setattr(medgemma, "_space_id", "")
+    consultations.clear()
+    chat_rate_limiter.clear()
+    reset_realtime_state()
+    yield
+    consultations.clear()
+    chat_rate_limiter.clear()
+    reset_realtime_state()
 
 
 @pytest.fixture
 def client() -> Iterator[TestClient]:
-    """Client for an app whose dependencies are all healthy."""
-    with TestClient(build_app()) as test_client:
+    with TestClient(create_app()) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def fake_model(monkeypatch: pytest.MonkeyPatch) -> list[list[dict[str, str]]]:
+    """Replace the Space call; records the messages each call was sent."""
+    calls: list[list[dict[str, str]]] = []
+
+    async def generate(messages: list[dict[str, str]]) -> str:
+        calls.append(messages)
+        return "1. Stay calm.\n2. Rest."
+
+    monkeypatch.setattr(medgemma, "generate", generate)
+    return calls

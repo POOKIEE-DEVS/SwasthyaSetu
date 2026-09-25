@@ -1,14 +1,13 @@
 """In-process registry of live WebSocket connections, grouped into rooms.
 
-A "room" is any fan-out target: a consultation id for call signalling, a
-user id for that person's notification stream, or ``doctors:available`` for
-the shared queue every on-call doctor watches.
+A "room" is a fan-out target: ``consultation:{id}`` for one call's
+signalling, or ``doctors:queue`` for the live queue every online doctor
+watches.
 
-Scope note: this registry lives in one process. Running more than one
-backend replica requires fanning broadcasts out over Redis pub/sub so a
-message published on replica A reaches a socket held by replica B -- Redis
-is already a dependency, and :meth:`broadcast` is the single seam where that
-gets added (Week 20, when deployment topology is settled).
+This registry lives in one process, which is why the app must run as a
+single worker. Scaling beyond that would mean fanning broadcasts out through
+a shared broker (e.g. Redis pub/sub); :meth:`broadcast` is where that would
+go.
 """
 
 from __future__ import annotations
