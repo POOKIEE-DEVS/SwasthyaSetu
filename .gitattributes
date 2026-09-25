@@ -5,6 +5,7 @@
 
 # Binary formats git must never touch
 *.docx binary
+*.pdf binary
 *.png binary
 *.jpg binary
 *.ico binary

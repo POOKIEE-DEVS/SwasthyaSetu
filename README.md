@@ -8,6 +8,8 @@ doctors through WebRTC video consultation, provides AI-assisted first-aid triage
 in curated medical sources, and stays useful offline — because the moments when guidance
 matters most are often the moments connectivity is weakest.
 
+- **Phase III functional requirements and technology specification:**
+  [docs/SwasthyaSetu-Phase3-Requirements.pdf](docs/SwasthyaSetu-Phase3-Requirements.pdf)
 - **System design, data model, and API shape:** [docs/architecture.md](docs/architecture.md)
 - **20-week roadmap and weekly progress:** [docs/roadmap.md](docs/roadmap.md) · working
   agreement and active week in [CLAUDE.md](CLAUDE.md)
