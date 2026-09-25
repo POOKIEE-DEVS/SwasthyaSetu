@@ -1,0 +1,10 @@
+# Normalize all text files to LF in the repository and on checkout.
+# This repo is developed on Windows but builds Linux containers; CRLF
+# leaking into files consumed inside containers causes subtle breakage.
+* text=auto eol=lf
+
+# Binary formats git must never touch
+*.docx binary
+*.png binary
+*.jpg binary
+*.ico binary

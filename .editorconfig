@@ -1,0 +1,35 @@
+# Editor defaults for the whole repo, so formatting does not depend on whose
+# machine a file was last opened on. Mirrors .gitattributes (LF everywhere)
+# and the per-language formatters: ruff for Python, Prettier defaults for the
+# frontend.
+# https://editorconfig.org
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_size = 4
+max_line_length = 88
+
+[*.{ts,tsx,js,jsx,mjs,cjs,css,json,jsonc}]
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.md]
+# Two trailing spaces are a hard line break in Markdown.
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+
+[*.{ini,cfg,toml}]
+indent_size = 4
