@@ -81,6 +81,7 @@ swasthyasetu/
 │   ├── public/              # service worker, manifest, icons
 │   └── package.json
 ├── docs/
+│   ├── SwasthyaSetu-Phase3-Requirements.pdf   # the requirements of record
 │   ├── architecture.md
 │   └── roadmap.md           # this 20-week plan, kept in sync as we go
 ├── docker-compose.yml
