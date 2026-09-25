@@ -1,0 +1,23 @@
+# Render Blueprint: one web service built from the root Dockerfile.
+# Render dashboard -> New -> Blueprint -> pick this repo. The secrets below
+# are prompted for on first deploy. See docs/deployment.md.
+
+services:
+  - type: web
+    name: swasthyasetu
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # "free" sleeps after 15 min idle (the first visit then takes ~1 min and
+    # drops any open call). Switch to "starter" for demo day.
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: HF_SPACE_ID
+        sync: false
+      - key: HF_TOKEN
+        sync: false
+      - key: CLOUDFLARE_TURN_KEY_ID
+        sync: false
+      - key: CLOUDFLARE_TURN_API_TOKEN
+        sync: false
