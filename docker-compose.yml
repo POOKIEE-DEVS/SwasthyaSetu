@@ -1,0 +1,150 @@
+# Local development stack.
+# Copy .env.example to .env to override the defaults below; every default is
+# dev-only and safe to run with as-is.
+#
+#   docker compose up --build
+#
+#   frontend   http://localhost:3000
+#   backend    http://localhost:8000/health   (liveness)
+#              http://localhost:8000/health/ready  (postgres + redis)
+#              http://localhost:8000/docs     (OpenAPI)
+#   postgres   localhost:5432
+#   redis      localhost:6379
+#   coturn     localhost:3478 (STUN/TURN for WebRTC)
+#
+# The schema is written but not applied -- migrations land in Week 2:
+#   docker compose exec backend alembic upgrade head
+
+name: swasthyasetu
+
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-swasthyasetu}:${POSTGRES_PASSWORD:-dev-only-password}@postgres:5432/${POSTGRES_DB:-swasthyasetu}
+  REDIS_URL: redis://redis:6379/0
+  CELERY_BROKER_URL: redis://redis:6379/1
+  CELERY_RESULT_BACKEND: redis://redis:6379/2
+  CORS_ORIGINS: http://localhost:3000
+  TURN_URLS: turn:localhost:3478
+  TURN_USERNAME: ${TURN_USERNAME:-swasthyasetu}
+  TURN_CREDENTIAL: ${TURN_CREDENTIAL:-dev-only-turn-secret}
+  ENVIRONMENT: development
+  LOG_LEVEL: INFO
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      <<: *backend-env
+      PORT: "8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # Same image as the backend, different entrypoint: the worker imports the
+  # same task modules, so building it twice would only risk them drifting.
+  worker:
+    build: ./backend
+    command: celery -A app.core.celery_app:celery_app worker --loglevel=info --queues=ai,notifications,default
+    environment: *backend-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "celery", "-A", "app.core.celery_app:celery_app", "inspect", "ping", "-d", "celery@$$HOSTNAME"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Baked into the client bundle at build time; both are public by
+      # definition since the browser must be able to read them.
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_WS_URL: ws://localhost:8000
+    depends_on:
+      backend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3000"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-swasthyasetu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-only-password}
+      POSTGRES_DB: ${POSTGRES_DB:-swasthyasetu}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  redis:
+    image: redis:7-alpine
+    # Persist the queue: an unacknowledged emergency notification must
+    # survive a restart of this container.
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # STUN/TURN for WebRTC. STUN alone suffices when both peers are directly
+  # reachable; TURN relays media when they are not, which is common on the
+  # mobile carrier networks this platform targets.
+  coturn:
+    image: coturn/coturn:4.6-alpine
+    # Host networking would be required for a real deployment (TURN allocates
+    # a wide UDP relay port range); for local development the signalling path
+    # and a small relay range are enough to exercise the flow.
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "49160-49200:49160-49200/udp"
+    command: >
+      -n --log-file=stdout
+      --min-port=49160 --max-port=49200
+      --realm=swasthyasetu.local
+      --use-auth-secret
+      --static-auth-secret=${TURN_CREDENTIAL:-dev-only-turn-secret}
+      --no-tls --no-dtls
+    healthcheck:
+      test: ["CMD-SHELL", "pidof turnserver || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  postgres-data:
+  redis-data:
