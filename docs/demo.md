@@ -23,7 +23,7 @@ A 5-minute live demo with two laptops: **Patient** (presenter) and **Doctor**
 - [ ] Record a backup video of the full flow
 
 **30 minutes before**
-- [ ] Wake the Space: open it and send one message; wait until it replies
+- [ ] Start the model (Colab: Run all, ~45 minutes before; put the new link in Render's `HF_SPACE_ID`). Send it one message and wait for the reply
 - [ ] Open the app URL on both laptops (wakes Render if on the free plan)
 - [ ] Run the smoke test once more
 - [ ] Doctor laptop: open `/doctor/`, **Go online**, volume up (for the arrival tone)

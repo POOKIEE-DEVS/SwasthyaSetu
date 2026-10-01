@@ -21,8 +21,9 @@ journey waits until after the demo.
   using unfamiliar APIs.
 - **Backend:** Python, FastAPI, Uvicorn. It serves the API, the WebSockets,
   and the built frontend from **one origin**.
-- **Model:** `google/medgemma-1.5-4b-it` on a Hugging Face Gradio Space
-  (`model-space/`), called via `gradio_client`.
+- **Model:** `google/medgemma-1.5-4b-it` served by `model-space/app.py`
+  (Gradio), called via `gradio_client`. Free: Colab T4 + a `gradio.live`
+  link (`model-space/colab.ipynb`). Paid: a Hugging Face GPU Space.
 - **Calls:** WebRTC. The backend relays signalling; Cloudflare provides TURN.
 - **Deploy:** one Docker image (`Dockerfile`) on Render (`render.yaml`).
 
@@ -56,7 +57,8 @@ Demo script: `docs/demo.md`. Requirements of record:
 - [x] Video call: camera/mic, two-way audio+video, mute, camera off, hang up, voice-only fallback, refresh-rejoin
 - [x] HF Space code (`model-space/`), Docker image, Render blueprint, CI
 - [x] Two-browser end-to-end smoke test (`scripts/smoke_test.py`)
-- [ ] Deploy the Space and accept the MedGemma terms (docs/deployment.md §1)
+- [x] Free model hosting: Colab notebook + share link (HF free tier is static-only)
+- [ ] Accept the MedGemma terms and run the model on Colab (docs/deployment.md §1)
 - [ ] Create Cloudflare TURN keys (§2)
 - [ ] Deploy to Render; `/health` shows model and TURN configured (§3)
 - [ ] Smoke test passes against the deployed URL

@@ -4,7 +4,7 @@ Three pieces, each on a platform suited to it:
 
 | Piece | Where | Why there |
 |---|---|---|
-| MedGemma model | Hugging Face Space (GPU) | Needs a GPU. The Space loads the gated model with your token. |
+| MedGemma model | Google Colab GPU (free) or a Hugging Face GPU Space (paid) | Needs a GPU. Loads the gated model with your token. |
 | App (website + API + call signalling) | Render, one Docker web service | HTTPS (required for cameras) and WebSockets, from one origin. |
 | TURN relay for video | Cloudflare Realtime TURN | Calls between different networks need a relay. Render has no UDP. |
 
@@ -12,34 +12,54 @@ Do them in this order. Allow about an hour the first time.
 
 ---
 
-## 1. MedGemma Space
+## 1. The MedGemma model
 
-1. **Accept the model terms.** Signed in to Hugging Face, open
-   [google/medgemma-1.5-4b-it](https://huggingface.co/google/medgemma-1.5-4b-it)
-   and accept the Health AI Developer Foundations terms. The Space cannot
-   download the model until your account has done this.
-2. **Create a token.** Settings → Access Tokens → create a **read** token.
-   Keep it private: it goes into two dashboards below and nowhere else (not
-   into chat, not into git).
-3. **Create the Space.** New Space → name it (e.g. `swasthyasetu-medgemma`) →
-   SDK **Gradio** → hardware **A10G small** or **L4** → visibility **Private**.
-4. **Add the code.** Upload the three files from [`model-space/`](../model-space/)
-   (`app.py`, `requirements.txt`, `README.md`) via Files → Upload, or push
-   them to the Space's git repo. `README.md` carries the Space config.
-5. **Add the secret.** Space Settings → Variables and secrets → **New secret**:
-   `HF_TOKEN` = your token.
-6. **Wait for it to build.** The first start downloads about 8 GB of model
-   weights, which takes several minutes. Then test it in the chat box on the
-   Space page, in English and in Nepali.
-7. **Set a sleep time.** GPU hardware bills per hour while the Space is
-   running. Settings → Sleep time. A sleeping Space wakes on the next request,
-   which takes a few minutes, so wake it before a demo.
+Both options run the same code, [`model-space/app.py`](../model-space/app.py).
+Either way, first **accept the model terms**: signed in to Hugging Face, open
+[google/medgemma-1.5-4b-it](https://huggingface.co/google/medgemma-1.5-4b-it)
+and accept the Health AI Developer Foundations terms. Then create a **read**
+token (Settings → Access Tokens). Keep it private: never in chat or git.
 
-> **Cheaper alternative:** with a Hugging Face PRO account you can pick
-> **ZeroGPU** hardware instead. `app.py` already supports it (`@spaces.GPU`).
-> GPU time then comes from a daily quota instead of an hourly bill.
+### Option A (free): Google Colab GPU
 
-Your Space ID is `your-username/swasthyasetu-medgemma`. You need it in step 3.
+A free Hugging Face account can only create static Spaces, so the free route
+is Colab's free T4 GPU, with Gradio publishing a public link.
+
+1. Open [`model-space/colab.ipynb`](../model-space/colab.ipynb) in Colab:
+   <https://colab.research.google.com/github/POOKIEE-DEVS/SwasthyaSetu/blob/main/model-space/colab.ipynb>
+2. Secrets (key icon, left sidebar) → add `HF_TOKEN` = your token → turn on
+   **Notebook access**.
+3. **Runtime → Change runtime type → T4 GPU**, then **Runtime → Run all**.
+   The first start downloads about 8 GB, which takes several minutes.
+4. The last cell prints `Running on public URL: https://….gradio.live`. That
+   URL is your `HF_SPACE_ID` in step 3. Open it to test the model in its chat
+   box, in English and in Nepali.
+
+Limits: keep the Colab tab open. Free Colab stops after about 90 minutes
+without interaction and after 12 hours at most, and **the link changes on
+every restart**, so update `HF_SPACE_ID` on Render each time (Render
+restarts the app, which takes a minute). On demo day, start Colab about 45
+minutes early.
+
+### Option B (paid, always on): Hugging Face GPU Space
+
+Needs a payment method on your Hugging Face account. Billed per hour while
+the Space is awake.
+
+1. New Space → name it (e.g. `swasthyasetu-medgemma`) → SDK **Gradio** →
+   hardware **A10G small** or **L4** → visibility **Private**.
+2. Upload `app.py`, `requirements.txt` and `README.md` from
+   [`model-space/`](../model-space/) (Files → Upload). `README.md` carries
+   the Space config.
+3. Space Settings → Variables and secrets → **New secret**: `HF_TOKEN` = your
+   token.
+4. Wait for it to build (first start downloads about 8 GB), then test it in
+   the chat box on the Space page.
+5. Settings → **Sleep time**, so you don't pay while it's idle. A sleeping
+   Space takes a few minutes to wake, so wake it before a demo.
+
+Your `HF_SPACE_ID` is `your-username/swasthyasetu-medgemma`. With a PRO
+account you can pick **ZeroGPU** instead; `app.py` supports it.
 
 ## 2. TURN relay (Cloudflare)
 
@@ -66,8 +86,8 @@ variables.
 
    | Variable | Value |
    |---|---|
-   | `HF_SPACE_ID` | `your-username/swasthyasetu-medgemma` |
-   | `HF_TOKEN` | the read token from step 1 |
+   | `HF_SPACE_ID` | Colab: the `https://….gradio.live` URL. Space: `your-username/swasthyasetu-medgemma` |
+   | `HF_TOKEN` | Colab: leave empty. Space: the read token from step 1 |
    | `CLOUDFLARE_TURN_KEY_ID` | Turn Token ID |
    | `CLOUDFLARE_TURN_API_TOKEN` | API Token |
 
@@ -104,7 +124,7 @@ relay works. Both run on one machine in the smoke test, so it can't.
 | Symptom | Likely cause |
 |---|---|
 | Chat says "not configured" | `HF_SPACE_ID` not set on Render |
-| Chat says "unavailable" / "took too long" | Space asleep (wait and retry), building, or `HF_TOKEN` can't access it |
+| Chat says "unavailable" / "took too long" | Colab stopped or its link changed (update `HF_SPACE_ID`); Space asleep (wait and retry), building, or `HF_TOKEN` can't access it |
 | Space build fails on the model download | Model terms not accepted, or `HF_TOKEN` secret missing on the Space |
 | Call stuck on "Connecting…", then "Connection problem" | TURN not configured, or wrong keys. Check `/health` → `turn_configured` |
 | "Camera access needs a secure (https) connection" | Opened over plain http on a LAN address. Use the Render https URL |

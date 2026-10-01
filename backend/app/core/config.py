@@ -37,8 +37,10 @@ class Settings(BaseSettings):
     static_dir: str = "static"
 
     # --- AI model (MedGemma on a Hugging Face Space) ---------------------
-    hf_space_id: str = ""  # e.g. "your-username/swasthyasetu-medgemma"
-    hf_token: str = ""  # needed when the Space is private (recommended)
+    # A Space ID ("your-username/swasthyasetu-medgemma") or the URL of any
+    # running copy of model-space/app.py, e.g. a Colab "https://….gradio.live".
+    hf_space_id: str = ""
+    hf_token: str = ""  # needed for a private Space; leave empty for a URL
     model_timeout_seconds: float = 120.0
     # The model card notes MedGemma is not optimised for long multi-turn
     # conversations, so only recent turns are sent.

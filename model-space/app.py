@@ -13,7 +13,9 @@ Environment (Space settings > Variables and secrets):
 - ``MAX_NEW_TOKENS`` (optional): defaults to 400.
 - ``SWASTHYA_MOCK_MODEL=1``: skip the model entirely (local protocol testing).
 
-Works on dedicated GPU hardware (A10G / L4) and on ZeroGPU.
+Works on dedicated GPU hardware (A10G / L4), on ZeroGPU, and on a free
+Google Colab GPU (see colab.ipynb): there ``GRADIO_SHARE=1`` publishes a
+public ``https://….gradio.live`` link for the backend to call.
 """
 
 from __future__ import annotations
@@ -192,4 +194,4 @@ with gr.Blocks(title="SwasthyaSetu · MedGemma") as demo:
 demo.queue(default_concurrency_limit=1)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(share=os.environ.get("GRADIO_SHARE") == "1")
