@@ -61,22 +61,37 @@ the Space is awake.
 Your `HF_SPACE_ID` is `your-username/swasthyasetu-medgemma`. With a PRO
 account you can pick **ZeroGPU** instead; `app.py` supports it.
 
-## 2. TURN relay (Cloudflare)
+## 2. TURN relay
 
 Without TURN, calls only connect when both laptops can reach each other more
 or less directly. That often fails across venue Wi-Fi, hotspots, and mobile
-networks.
+networks. A 5-minute relayed video call uses roughly 100–200 MB.
 
-1. In the Cloudflare dashboard, open **Realtime → TURN Server** and create a
-   TURN key.
-2. Copy the **Turn Token ID** and the **API Token**.
+### Option A (free, no card): ExpressTURN
 
-The first 1,000 GB each month are free (shared with Cloudflare's SFU), then
-$0.05/GB. A 5-minute call uses well under 1 GB.
+1. Sign up at <https://www.expressturn.com/> (free plan: 1,000 GB a month,
+   one server location).
+2. In the dashboard, copy the **server address**, **username**, and
+   **password**.
+3. In step 3 set (replace `HOST:PORT` with the address shown):
 
-*Alternative:* any TURN provider with static credentials, for example Metered.
-Set `TURN_URLS`, `TURN_USERNAME`, `TURN_CREDENTIAL` instead of the Cloudflare
-variables.
+   | Variable | Value |
+   |---|---|
+   | `TURN_URLS` | `turn:HOST:PORT,turn:HOST:PORT?transport=tcp` |
+   | `TURN_USERNAME` | the username |
+   | `TURN_CREDENTIAL` | the password |
+
+   The `?transport=tcp` entry gets through networks that block UDP. If the
+   dashboard also lists port 443, add `turn:HOST:443?transport=tcp` too.
+
+### Option B: Cloudflare Realtime TURN
+
+The first 1,000 GB a month are free, then $0.05/GB, but Cloudflare asks for a
+card on file. Realtime → TURN Server → create a key, then copy the **Turn
+Token ID** and **API Token** into `CLOUDFLARE_TURN_KEY_ID` and
+`CLOUDFLARE_TURN_API_TOKEN`.
+
+Fill in one option; leave the other's variables empty.
 
 ## 3. The app (Render)
 
@@ -88,8 +103,8 @@ variables.
    |---|---|
    | `HF_SPACE_ID` | Colab: the `https://….gradio.live` URL. Space: `your-username/swasthyasetu-medgemma` |
    | `HF_TOKEN` | Colab: leave empty. Space: the read token from step 1 |
-   | `CLOUDFLARE_TURN_KEY_ID` | Turn Token ID |
-   | `CLOUDFLARE_TURN_API_TOKEN` | API Token |
+   | `TURN_URLS`, `TURN_USERNAME`, `TURN_CREDENTIAL` | ExpressTURN values from step 2 |
+   | `CLOUDFLARE_TURN_KEY_ID`, `CLOUDFLARE_TURN_API_TOKEN` | leave empty (unless you chose Cloudflare) |
 
 3. Deploy. The Docker build takes a few minutes. You get a URL like
    `https://swasthyasetu-xxxx.onrender.com`.

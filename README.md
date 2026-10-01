@@ -23,7 +23,7 @@ doctor, for communities where medical help is far away.
 |---|---|
 | Frontend | Next.js (static export, installable PWA) · TypeScript · Tailwind CSS · shadcn/ui · Zustand |
 | Backend | Python · FastAPI · Uvicorn (serves the API, WebSockets, and the frontend from one origin) |
-| Real-time | Native FastAPI WebSockets · WebRTC with STUN/TURN (Cloudflare) |
+| Real-time | Native FastAPI WebSockets · WebRTC with STUN/TURN (ExpressTURN or Cloudflare) |
 | AI | MedGemma 1.5 4B (`google/medgemma-1.5-4b-it`) on a Hugging Face GPU Space |
 
 How it fits together: [docs/architecture.md](docs/architecture.md).

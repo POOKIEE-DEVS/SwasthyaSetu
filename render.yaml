@@ -17,6 +17,15 @@ services:
         sync: false
       - key: HF_TOKEN
         sync: false
+      # TURN relay: fill in ONE option and leave the other empty.
+      # Static credentials (e.g. ExpressTURN's free plan):
+      - key: TURN_URLS
+        sync: false
+      - key: TURN_USERNAME
+        sync: false
+      - key: TURN_CREDENTIAL
+        sync: false
+      # Or Cloudflare Realtime TURN (needs a card on file):
       - key: CLOUDFLARE_TURN_KEY_ID
         sync: false
       - key: CLOUDFLARE_TURN_API_TOKEN

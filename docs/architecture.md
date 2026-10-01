@@ -7,7 +7,7 @@ flowchart LR
     P <-- "WSS /ws/consultations/{id}: WebRTC signalling" --> A
     D <-- "WSS /ws/consultations/{id}" --> A
     A["App: FastAPI, one process<br/>serves the Next.js static export,<br/>REST API and WebSockets"] -- "gradio_client /generate" --> M["MedGemma Space<br/>(Hugging Face GPU)"]
-    A -- "mint short-lived credentials" --> T["Cloudflare TURN"]
+    A -- "ICE servers in each call ticket" --> T["TURN relay<br/>(ExpressTURN or Cloudflare)"]
     P <-. "audio + video, encrypted (peer-to-peer, or relayed via TURN)" .-> D
 ```
 

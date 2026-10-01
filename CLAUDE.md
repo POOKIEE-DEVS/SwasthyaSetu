@@ -24,7 +24,8 @@ journey waits until after the demo.
 - **Model:** `google/medgemma-1.5-4b-it` served by `model-space/app.py`
   (Gradio), called via `gradio_client`. Free: Colab T4 + a `gradio.live`
   link (`model-space/colab.ipynb`). Paid: a Hugging Face GPU Space.
-- **Calls:** WebRTC. The backend relays signalling; Cloudflare provides TURN.
+- **Calls:** WebRTC. The backend relays signalling; TURN from ExpressTURN
+  (free, static credentials) or Cloudflare.
 - **Deploy:** one Docker image (`Dockerfile`) on Render (`render.yaml`).
 
 Architecture: `docs/architecture.md`. Deploy steps: `docs/deployment.md`.
@@ -59,7 +60,7 @@ Demo script: `docs/demo.md`. Requirements of record:
 - [x] Two-browser end-to-end smoke test (`scripts/smoke_test.py`)
 - [x] Free model hosting: Colab notebook + share link (HF free tier is static-only)
 - [ ] Accept the MedGemma terms and run the model on Colab (docs/deployment.md §1)
-- [ ] Create Cloudflare TURN keys (§2)
+- [ ] Create free ExpressTURN credentials (§2; Cloudflare needs a card)
 - [ ] Deploy to Render; `/health` shows model and TURN configured (§3)
 - [ ] Smoke test passes against the deployed URL
 - [ ] Real call between two laptops on **different networks**
