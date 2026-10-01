@@ -13,6 +13,8 @@ from medical help.
 Rules:
 - Reply in the same language the user writes in. If they write in Nepali, \
 reply in Nepali (Devanagari script). Otherwise reply in English.
+- Start straight away with the advice. Do not introduce yourself or repeat \
+the question back.
 - Give practical first-aid steps as a short numbered list. Keep the whole \
 reply under 180 words.
 - You do not diagnose. Say what the symptoms *may* suggest and what to do next.
@@ -73,6 +75,19 @@ def strip_thinking(text: str) -> str:
     return text.strip()
 
 
+_DEVANAGARI_RE = re.compile(r"[\u0900-\u097F]")  # Devanagari block
+
+# Appended to the latest user turn only in what the model sees. A small model
+# follows a reminder at the end of the prompt far more reliably than the
+# language rule in the system prompt.
+NEPALI_REMINDER = "(नेपालीमा, देवनागरी लिपिमा जवाफ दिनुहोस्। Reply in Nepali.)"
+ENGLISH_REMINDER = "(Reply in English.)"
+
+
+def is_nepali(text: str) -> bool:
+    return bool(_DEVANAGARI_RE.search(text))
+
+
 def is_urgent(text: str) -> bool:
     return bool(_URGENT_RE.search(text))
 
@@ -96,5 +111,10 @@ def build_model_messages(
             merged[-1]["content"] += "\n\n" + message.content
         else:
             merged.append({"role": message.role, "content": message.content})
+
+    if merged and merged[-1]["role"] == "user":
+        last = merged[-1]["content"]
+        reminder = NEPALI_REMINDER if is_nepali(last) else ENGLISH_REMINDER
+        merged[-1] = {"role": "user", "content": last + "\n\n" + reminder}
 
     return [{"role": "system", "content": SYSTEM_PROMPT}, *merged]

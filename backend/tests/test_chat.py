@@ -7,6 +7,8 @@ from fastapi.testclient import TestClient
 
 from app.ai.medgemma import ModelUnavailableError, medgemma
 from app.ai.prompts import (
+    ENGLISH_REMINDER,
+    NEPALI_REMINDER,
     SYSTEM_PROMPT,
     build_model_messages,
     is_urgent,
@@ -27,7 +29,10 @@ def test_chat_returns_model_reply(client: TestClient, fake_model: list) -> None:
     assert response.json() == {"reply": "1. Stay calm.\n2. Rest.", "urgent": False}
     sent = fake_model[0]
     assert sent[0] == {"role": "system", "content": SYSTEM_PROMPT}
-    assert sent[-1] == {"role": "user", "content": "I cut my finger"}
+    assert sent[-1] == {
+        "role": "user",
+        "content": "I cut my finger\n\n" + ENGLISH_REMINDER,
+    }
 
 
 def test_urgent_message_is_flagged(client: TestClient, fake_model: list) -> None:
@@ -110,7 +115,7 @@ def test_history_is_trimmed_and_alternates() -> None:
     assert roles[0] == "system"
     assert roles[1] == "user"  # leading assistant turn dropped after trimming
     assert all(a != b for a, b in pairwise(roles[1:]))
-    assert messages[-1]["content"] == "latest"
+    assert messages[-1]["content"] == "latest\n\n" + ENGLISH_REMINDER
     assert len(messages) <= 5
 
 
@@ -120,7 +125,22 @@ def test_consecutive_user_turns_are_merged() -> None:
         ChatMessage(role="user", content="second"),
     ]
     messages = build_model_messages(history, max_messages=8)
-    assert messages[1] == {"role": "user", "content": "first\n\nsecond"}
+    assert messages[1]["content"].startswith("first\n\nsecond")
+
+
+def test_reply_language_follows_latest_message() -> None:
+    history = [
+        ChatMessage(role="user", content="I burned my hand"),
+        ChatMessage(role="assistant", content="1. Cool it."),
+        ChatMessage(role="user", content="मेरो बुबाको छाती दुख्यो"),
+    ]
+    messages = build_model_messages(history, max_messages=8)
+    assert messages[-1]["content"].endswith(NEPALI_REMINDER)
+    # Only the latest turn carries the reminder.
+    assert messages[1]["content"] == "I burned my hand"
+
+    english = build_model_messages(history[:1], max_messages=8)
+    assert english[-1]["content"].endswith(ENGLISH_REMINDER)
 
 
 @pytest.mark.parametrize(
