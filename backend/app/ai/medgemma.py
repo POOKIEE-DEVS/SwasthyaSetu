@@ -16,6 +16,7 @@ import threading
 
 from gradio_client import Client
 
+from app.ai.prompts import strip_thinking
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,7 @@ class MedGemmaClient:
     def _generate_sync(self, messages: list[dict[str, str]]) -> str:
         client = self._get_client()
         result = client.predict(json.dumps(messages), api_name="/generate")
-        return str(result).strip()
+        return strip_thinking(str(result))
 
     async def generate(self, messages: list[dict[str, str]]) -> str:
         if not self._space_id:

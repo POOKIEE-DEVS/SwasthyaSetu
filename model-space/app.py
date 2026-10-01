@@ -11,6 +11,9 @@ Environment (Space settings > Variables and secrets):
 - ``HF_TOKEN`` (secret): a token whose account has accepted the MedGemma terms.
 - ``MODEL_ID`` (optional): defaults to google/medgemma-1.5-4b-it.
 - ``MAX_NEW_TOKENS`` (optional): defaults to 400.
+- ``ALLOW_THINKING=1`` (optional): let MedGemma reason before answering.
+  Off by default: the reasoning is slow on small GPUs and eats the token
+  budget, and patients only see the final reply anyway.
 - ``SWASTHYA_MOCK_MODEL=1``: skip the model entirely (local protocol testing).
 
 Works on dedicated GPU hardware (A10G / L4), on ZeroGPU, and on a free
@@ -41,6 +44,12 @@ MODEL_ID = os.environ.get("MODEL_ID", "google/medgemma-1.5-4b-it")
 MAX_NEW_TOKENS = int(os.environ.get("MAX_NEW_TOKENS", "400"))
 MAX_INPUT_TOKENS = int(os.environ.get("MAX_INPUT_TOKENS", "3000"))
 MOCK = os.environ.get("SWASTHYA_MOCK_MODEL") == "1"
+ALLOW_THINKING = os.environ.get("ALLOW_THINKING") == "1"
+
+# MedGemma 1.5 may think first: <unused94>thought ... <unused95>, then the
+# reply. Starting the model's turn with an empty thought skips the thinking.
+THOUGHT_START, THOUGHT_END = "<unused94>", "<unused95>"
+EMPTY_THOUGHT = f"{THOUGHT_START}thought\n{THOUGHT_END}"
 
 UI_SYSTEM_PROMPT = (
     "You are a first-aid assistant for people in Nepal. Reply in the user's "
@@ -132,19 +141,31 @@ def fit_to_context(messages: list[dict]) -> list[dict]:
 
 @gpu
 def run_model(messages: list[dict]) -> str:
-    inputs = processor.apply_chat_template(
-        messages,
-        add_generation_prompt=True,
-        tokenize=True,
-        return_dict=True,
-        return_tensors="pt",
-    ).to(model.device, dtype=torch.bfloat16)
+    prompt = processor.apply_chat_template(
+        messages, add_generation_prompt=True, tokenize=False
+    )
+    if not ALLOW_THINKING:
+        prompt += EMPTY_THOUGHT
+    # The template already starts with <bos>; don't add a second one.
+    inputs = processor.tokenizer(
+        prompt, return_tensors="pt", add_special_tokens=False
+    ).to(model.device)
     input_len = inputs["input_ids"].shape[-1]
     with torch.inference_mode():
         output = model.generate(
             **inputs, max_new_tokens=MAX_NEW_TOKENS, do_sample=False
         )
-    return processor.decode(output[0][input_len:], skip_special_tokens=True).strip()
+    text = processor.decode(output[0][input_len:], skip_special_tokens=True)
+    return strip_thinking(text)
+
+
+def strip_thinking(text: str) -> str:
+    """Only the reply after any thought block; empty if it never finished."""
+    if THOUGHT_END in text:
+        return text.rsplit(THOUGHT_END, 1)[1].strip()
+    if text.lstrip().startswith(THOUGHT_START):
+        return ""
+    return text.strip()
 
 
 def reply_to(messages: list[dict]) -> str:

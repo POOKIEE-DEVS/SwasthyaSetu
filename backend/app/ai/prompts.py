@@ -57,6 +57,22 @@ _URGENT_PATTERNS = [
 _URGENT_RE = re.compile("|".join(_URGENT_PATTERNS), re.IGNORECASE)
 
 
+# MedGemma 1.5 can "think" before answering: <unused94>thought ... <unused95>,
+# then the reply. The reasoning is not for patients.
+_THOUGHT_START = "<unused94>"
+_THOUGHT_END = "<unused95>"
+
+
+def strip_thinking(text: str) -> str:
+    """Return only the patient-facing reply. Empty if the model never got past
+    its reasoning (e.g. it ran out of tokens mid-thought)."""
+    if _THOUGHT_END in text:
+        return text.rsplit(_THOUGHT_END, 1)[1].strip()
+    if text.lstrip().startswith(_THOUGHT_START):
+        return ""
+    return text.strip()
+
+
 def is_urgent(text: str) -> bool:
     return bool(_URGENT_RE.search(text))
 

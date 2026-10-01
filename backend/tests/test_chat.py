@@ -6,7 +6,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.ai.medgemma import ModelUnavailableError, medgemma
-from app.ai.prompts import SYSTEM_PROMPT, build_model_messages, is_urgent
+from app.ai.prompts import (
+    SYSTEM_PROMPT,
+    build_model_messages,
+    is_urgent,
+    strip_thinking,
+)
 from app.core.config import settings
 from app.schemas.chat import ChatMessage
 
@@ -116,3 +121,20 @@ def test_consecutive_user_turns_are_merged() -> None:
     ]
     messages = build_model_messages(history, max_messages=8)
     assert messages[1] == {"role": "user", "content": "first\n\nsecond"}
+
+
+@pytest.mark.parametrize(
+    ("raw", "reply"),
+    [
+        ("1. Cool the burn.", "1. Cool the burn."),
+        (
+            "<unused94>thought\nThe user burned...<unused95>1. Cool the burn.",
+            "1. Cool the burn.",
+        ),
+        ("<unused94>thought\n<unused95>\n\n1. Cool the burn.\n", "1. Cool the burn."),
+        # Ran out of tokens mid-thought: nothing usable for the patient.
+        ("<unused94>thought\nThe user burned their hand. I need to", ""),
+    ],
+)
+def test_strip_thinking(raw: str, reply: str) -> None:
+    assert strip_thinking(raw) == reply
