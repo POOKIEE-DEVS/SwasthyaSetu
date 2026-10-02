@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { api, ApiError } from "@/lib/api";
 import { clearTicket, saveTicket, useTicket } from "@/lib/session";
+import { useAuth } from "@/lib/store/auth";
 import { transcript, useChatStore } from "@/lib/store/chat";
 
 type Stage = "chat" | "request";
@@ -28,6 +29,16 @@ export function PatientView() {
   useEffect(() => {
     useChatStore.persist.rehydrate();
   }, []);
+
+  // Signed in after chatting as a guest: keep that conversation too.
+  const { user } = useAuth();
+  const chatId = useChatStore((s) => s.chatId);
+  const lastRole = messages.at(-1)?.role;
+  useEffect(() => {
+    if (user && !chatId && lastRole === "assistant") {
+      void useChatStore.getState().saveGuestChat();
+    }
+  }, [user, chatId, lastRole]);
 
   const requestDoctor = async () => {
     if (!name.trim()) return;

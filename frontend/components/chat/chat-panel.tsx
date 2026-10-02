@@ -1,11 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Loader2, RotateCcw, SendHorizontal, Stethoscope } from "lucide-react";
+import Link from "next/link";
+import {
+  AlertTriangle,
+  History,
+  Loader2,
+  RotateCcw,
+  SendHorizontal,
+  Stethoscope,
+} from "lucide-react";
 
+import { ChatHistory } from "@/components/chat/chat-history";
 import { MessageText } from "@/components/chat/message-text";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/lib/store/auth";
 import { useChatStore } from "@/lib/store/chat";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +29,8 @@ type Props = { onTalkToDoctor: () => void };
 
 export function ChatPanel({ onTalkToDoctor }: Props) {
   const { messages, pending, error, urgent, send, retry, reset } = useChatStore();
+  const { user, ready } = useAuth();
+  const [showHistory, setShowHistory] = useState(false);
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -39,12 +51,41 @@ export function ChatPanel({ onTalkToDoctor }: Props) {
           <h2 className="font-semibold">First-aid assistant</h2>
           <p className="text-xs text-muted-foreground">English or नेपाली · Not a diagnosis</p>
         </div>
-        {messages.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={reset} disabled={pending}>
-            <RotateCcw aria-hidden />
-            New chat
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {user && (
+            <Button
+              variant={showHistory ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setShowHistory((open) => !open)}
+              aria-pressed={showHistory}
+            >
+              <History aria-hidden />
+              My chats
+            </Button>
+          )}
+          {ready && !user && (
+            <Link
+              href="/account/"
+              className="px-2 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              Sign in to save chats
+            </Link>
+          )}
+          {(messages.length > 0 || showHistory) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                reset();
+                setShowHistory(false);
+              }}
+              disabled={pending}
+            >
+              <RotateCcw aria-hidden />
+              New chat
+            </Button>
+          )}
+        </div>
       </div>
 
       {urgent && (
@@ -67,6 +108,11 @@ export function ChatPanel({ onTalkToDoctor }: Props) {
         </div>
       )}
 
+      {showHistory && user ? (
+        <div className="min-h-0 flex-1 overflow-y-auto py-2">
+          <ChatHistory onOpened={() => setShowHistory(false)} />
+        </div>
+      ) : (
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4" aria-live="polite">
         {messages.length === 0 && (
           <div className="flex flex-col gap-3 py-6 text-center">
@@ -126,6 +172,7 @@ export function ChatPanel({ onTalkToDoctor }: Props) {
         )}
         <div ref={endRef} />
       </div>
+      )}
 
       <form
         className="flex items-end gap-2 border-t p-3"
