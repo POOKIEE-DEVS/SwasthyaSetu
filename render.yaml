@@ -30,3 +30,17 @@ services:
         sync: false
       - key: CLOUDFLARE_TURN_API_TOKEN
         sync: false
+      # Accounts, verification and chat history: a Postgres connection
+      # string (Neon or Supabase). Without it they are lost on restart.
+      - key: DATABASE_URL
+        sync: false
+      # Sign in with Google: the OAuth client from Google Cloud Console.
+      # Its redirect URI is https://<this service>/api/v1/auth/google/callback
+      # (Render's RENDER_EXTERNAL_URL supplies the host automatically).
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      # Google account email(s) of the admin who reviews applications.
+      - key: ADMIN_EMAILS
+        sync: false

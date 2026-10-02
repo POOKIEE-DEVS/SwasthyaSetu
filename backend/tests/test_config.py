@@ -62,3 +62,13 @@ def test_admin_emails_are_case_insensitive(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setenv("ADMIN_EMAILS", "Admin@Example.com, second@example.com")
     s = Settings(_env_file=None)
     assert s.admin_email_list == ["admin@example.com", "second@example.com"]
+
+
+def test_public_url_falls_back_to_render_external_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("PUBLIC_URL", raising=False)
+    monkeypatch.setenv("RENDER_EXTERNAL_URL", "https://swasthyasetu.onrender.com")
+    assert Settings(_env_file=None).public_url == "https://swasthyasetu.onrender.com"
+    monkeypatch.setenv("PUBLIC_URL", "https://custom.example")
+    assert Settings(_env_file=None).public_url == "https://custom.example"

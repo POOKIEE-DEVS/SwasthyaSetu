@@ -11,6 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -74,8 +75,11 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     # The site's public base URL, e.g. https://swasthyasetu-580o.onrender.com.
     # Google redirects back to {PUBLIC_URL}/api/v1/auth/google/callback.
-    # Empty: derived from the request, which works behind Render's proxy.
-    public_url: str = ""
+    # Render sets RENDER_EXTERNAL_URL itself, so on Render this needs no
+    # setting. Empty: derived from the request.
+    public_url: str = Field(
+        default="", validation_alias=AliasChoices("PUBLIC_URL", "RENDER_EXTERNAL_URL")
+    )
     # Comma-separated Google account emails allowed into the admin review page.
     admin_emails: str = ""
     session_days: int = 30
