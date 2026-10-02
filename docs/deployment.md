@@ -1,14 +1,16 @@
 # Deploying SwasthyaSetu
 
-Three pieces, each on a platform suited to it:
+Five pieces, each on a platform suited to it. All have a free option.
 
 | Piece | Where | Why there |
 |---|---|---|
 | MedGemma model | Google Colab GPU (free) or a Hugging Face GPU Space (paid) | Needs a GPU. Loads the gated model with your token. |
+| TURN relay for video | ExpressTURN (free) or Cloudflare Realtime TURN | Calls between different networks need a relay. Render has no UDP. |
+| Database | Neon (free Postgres) | Accounts, verification documents and saved chats must survive restarts. |
+| Google sign-in | Google Cloud OAuth client (free) | Patients and professionals sign in with their Google account. |
 | App (website + API + call signalling) | Render, one Docker web service | HTTPS (required for cameras) and WebSockets, from one origin. |
-| TURN relay for video | Cloudflare Realtime TURN | Calls between different networks need a relay. Render has no UDP. |
 
-Do them in this order. Allow about an hour the first time.
+Do them in this order. Allow about an hour and a half the first time.
 
 ---
 
@@ -32,7 +34,7 @@ is Colab's free T4 GPU, with Gradio publishing a public link.
 3. **Runtime → Change runtime type → T4 GPU**, then **Runtime → Run all**.
    The first start downloads about 8 GB, which takes several minutes.
 4. The last cell prints `Running on public URL: https://….gradio.live`. That
-   URL is your `HF_SPACE_ID` in step 3. Open it to test the model in its chat
+   URL is your `HF_SPACE_ID` in step 5. Open it to test the model in its chat
    box, in English and in Nepali.
 
 Limits: keep the Colab tab open. Free Colab stops after about 90 minutes
@@ -73,7 +75,7 @@ networks. A 5-minute relayed video call uses roughly 100–200 MB.
    one server location).
 2. In the dashboard, copy the **server address**, **username**, and
    **password**.
-3. In step 3 set (replace `HOST:PORT` with the address shown):
+3. In step 5 set (replace `HOST:PORT` with the address shown):
 
    | Variable | Value |
    |---|---|
@@ -93,11 +95,51 @@ Token ID** and **API Token** into `CLOUDFLARE_TURN_KEY_ID` and
 
 Fill in one option; leave the other's variables empty.
 
-## 3. The app (Render)
+## 3. Database (Neon, free Postgres)
+
+Accounts, professional applications (with their document photos), review
+decisions and saved chats live here. Without it the app falls back to a
+SQLite file that Render wipes on every restart.
+
+1. Sign up at <https://neon.tech> and create a project. Pick the region
+   closest to your Render service's region (shown on the Render service
+   page).
+2. On the project dashboard, **Connect** → copy the connection string. It
+   looks like `postgresql://user:password@ep-xxxx.region.aws.neon.tech/neondb?sslmode=require`.
+3. That is your `DATABASE_URL` in step 5. Tables are created automatically on
+   the first start.
+
+*Alternative:* Supabase Postgres. Use its **Session pooler** connection
+string (the direct one is IPv6-only on the free plan, which Render can't
+reach). Free Supabase projects pause after a week without activity.
+
+## 4. Google sign-in (OAuth client)
+
+1. Open <https://console.cloud.google.com>, create a project (e.g.
+   "SwasthyaSetu").
+2. **Google Auth Platform** (APIs & Services → OAuth consent screen) →
+   **Get started**: app name *SwasthyaSetu*, your support email, audience
+   **External**, your contact email → Create.
+3. **Audience** → **Publish app**. The app only asks for name, email and
+   profile picture (non-sensitive scopes), so Google's app verification is
+   not required. (While it is in "Testing", only test users you list can
+   sign in.)
+4. **Clients** → **Create client** → type **Web application**:
+   - Authorized JavaScript origins: `https://swasthyasetu-xxxx.onrender.com`
+   - Authorized redirect URIs:
+     `https://swasthyasetu-xxxx.onrender.com/api/v1/auth/google/callback`
+     (exactly this, with your Render URL; add
+     `http://localhost:8000/api/v1/auth/google/callback` too for local runs)
+5. Copy the **Client ID** and **Client secret**: `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET` in step 5. Keep the secret out of chat and git.
+
+## 5. The app (Render)
 
 1. Render dashboard → **New → Blueprint** → connect this GitHub repo. It reads
    [`render.yaml`](../render.yaml).
-2. Fill in the secrets it asks for:
+2. Fill in the secrets it asks for. **Already deployed?** Render only asks
+   when a service is created: add any missing ones in the service's
+   **Environment** tab instead, then save (it redeploys).
 
    | Variable | Value |
    |---|---|
@@ -105,11 +147,32 @@ Fill in one option; leave the other's variables empty.
    | `HF_TOKEN` | Colab: leave empty. Space: the read token from step 1 |
    | `TURN_URLS`, `TURN_USERNAME`, `TURN_CREDENTIAL` | ExpressTURN values from step 2 |
    | `CLOUDFLARE_TURN_KEY_ID`, `CLOUDFLARE_TURN_API_TOKEN` | leave empty (unless you chose Cloudflare) |
+   | `DATABASE_URL` | the Neon connection string from step 3 |
+   | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | from step 4 |
+   | `ADMIN_EMAILS` | the Google account email of the admin who reviews applications (comma-separate several) |
 
+   Paste values with no spaces before or after them.
 3. Deploy. The Docker build takes a few minutes. You get a URL like
-   `https://swasthyasetu-xxxx.onrender.com`.
-4. Open `https://…onrender.com/health`. You should see
-   `"model_configured": true` and `"turn_configured": true`.
+   `https://swasthyasetu-xxxx.onrender.com`. Google's redirect address uses
+   it automatically (from Render's `RENDER_EXTERNAL_URL`).
+4. Open `https://…onrender.com/health`. You should see:
+   - `"model_configured": true` and `"turn_configured": true`
+   - `"database": "postgres"` and `"database_ready": true`
+   - `"google_sign_in_configured": true`
+
+## 6. First admin and first verified professional
+
+1. On the site, **Sign in** with the admin's Google account. The account
+   page shows **Admin: review applications**.
+2. On another browser (or a private window), sign in with the professional's
+   Google account → choose **Doctor** (or Pharmacist / MBBS Student) → fill
+   in the verification form and upload the documents → **Submit for
+   review**.
+3. As the admin, open `/admin/` → check the documents and look the NMC /
+   Pharmacy Council number up on the council's register → **Approve**.
+4. The professional opens `/doctor/` → **Check again** → **Go online**.
+
+For the demo, have the demo doctor approved beforehand.
 
 **Plan:** `render.yaml` uses the free plan. It sleeps after 15 minutes idle;
 the next visit takes about a minute to wake, and sleeping drops any open call.
@@ -118,17 +181,29 @@ Instance Type), or at least open the URL a few minutes beforehand.
 
 Pushes to `main` redeploy automatically.
 
-## 4. Verify before every rehearsal
+## 7. Verify before every rehearsal
+
+The deployed site only has Google sign-in, so the smoke test borrows the
+session of your already verified demo professional:
+
+1. In Chrome, signed in on the site as the verified professional, press
+   **F12** → **Application** → **Cookies** → your site → copy the value of
+   `swasthya_session`. Treat it like a password.
+2. Run:
 
 ```bash
 pip install playwright
-python scripts/smoke_test.py https://swasthyasetu-xxxx.onrender.com
+python scripts/smoke_test.py https://swasthyasetu-xxxx.onrender.com --pro-session <that value>
 ```
 
-The smoke test runs the whole demo in two Chrome windows: chat, emergency
-banner, doctor request, live two-way video, mute, refresh-rejoin, and hang-up.
-It prints `ALL GOOD — ready to demo.` or says which step failed. It uses your
+It runs the demo in Chrome windows: the professional goes online, chat,
+emergency banner, doctor request (no login), live two-way video, the
+"Verified Doctor" badge, mute, refresh-rejoin, and hang-up. It prints
+`ALL GOOD — ready to demo.` or says which step failed. It uses your
 installed Chrome with a fake camera.
+
+Locally (see below) it also covers applying with documents, admin approval,
+and a patient's saved chats.
 
 Then do it once for real, on **two laptops on different networks**: one on
 Wi-Fi and one on a phone hotspot. This is the only test that proves the TURN
@@ -144,6 +219,12 @@ relay works. Both run on one machine in the smoke test, so it can't.
 | Call stuck on "Connecting…", then "Connection problem" | TURN not configured, or wrong keys. Check `/health` → `turn_configured` |
 | "Camera access needs a secure (https) connection" | Opened over plain http on a LAN address. Use the Render https URL |
 | Everything slow for the first minute | Render free plan waking up |
+| Google says "Error 400: redirect_uri_mismatch" | The redirect URI in the Google client must be exactly `https://<your Render URL>/api/v1/auth/google/callback` |
+| Google says "Access blocked" / only some accounts can sign in | The app is still in "Testing": publish it (step 4.3) or add the accounts as test users |
+| `/health` shows `"database": "sqlite"` | `DATABASE_URL` isn't set on Render: accounts and approvals would vanish on restart |
+| `/health` shows `"database_ready": false` | `DATABASE_URL` is wrong or Neon is unreachable. Chat and patient calls still work; sign-in doesn't |
+| The admin doesn't see "Admin: review applications" | `ADMIN_EMAILS` doesn't match the Google account's email exactly |
+| A professional sees "Waiting for review" after approval | They need to press **Check again** (or reload) |
 
 ## Local development
 
@@ -151,7 +232,7 @@ relay works. Both run on one machine in the smoke test, so it can't.
 # Backend: API on :8000
 cd backend
 python -m venv .venv && .venv/Scripts/pip install -r requirements-dev.txt   # Windows
-cp .env.example .env            # set HF_SPACE_ID / HF_TOKEN
+cp .env.example .env            # set HF_SPACE_ID / HF_TOKEN; DEV_LOGIN=true
 .venv/Scripts/uvicorn app.main:app --reload
 
 # Frontend: on :3000, calling the API on :8000
@@ -163,6 +244,20 @@ npm install && npm run dev
 Camera access works on `localhost`, so you can test a call with two browser
 windows on one machine. Use headphones to avoid feedback. Some laptops only
 let one window use the camera; the second then falls back to voice-only.
+
+Locally the database is a SQLite file and `DEV_LOGIN=true` adds a
+"development sign-in" form (any email, no Google), so you can test as a
+patient, a professional and the admin (an email listed in `ADMIN_EMAILS`).
+It is always off in production.
+
+The full local smoke test (with admin@smoke.test as admin):
+
+```bash
+cd frontend && npm run build && cd ../backend
+STATIC_DIR=../frontend/out DEV_LOGIN=true ADMIN_EMAILS=admin@smoke.test \
+  .venv/Scripts/uvicorn app.main:app --port 8000
+python ../scripts/smoke_test.py http://localhost:8000
+```
 
 To run exactly what production runs: `docker compose up --build`, then
 open <http://localhost:8000>.

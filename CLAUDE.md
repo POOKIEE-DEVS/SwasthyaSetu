@@ -2,25 +2,33 @@
 
 ## Mode: shipping a hackathon demo
 
-We are building a ~5-minute live demo, due in 4 days. The goal is **one
-reliable end-to-end journey**, not feature breadth:
+A ~5-minute live demo, due 2026-10-04. The goal is **one reliable
+end-to-end journey** plus the trust layer around it:
 
-1. A patient chats with MedGemma, in English or Nepali.
+1. A patient (no login) chats with MedGemma, in English or Nepali.
 2. The patient requests a doctor.
-3. A volunteer doctor on another laptop accepts.
-4. They talk on a live WebRTC video call.
+3. A **verified** doctor, pharmacist or MBBS student accepts.
+4. They talk on a live WebRTC video call; the patient sees "Verified Doctor".
 
-Prefer small, working, verified changes. Anything that isn't on that
-journey waits until after the demo.
+Around it: Google sign-in, professional verification (KYC) reviewed by one
+admin, and saved chats for signed-in patients.
+
+Prefer small, working, verified changes. Anything else waits until after
+the demo.
 
 ## Stack
 
 - **Frontend:** Next.js as a static export (TypeScript, Tailwind CSS v4,
   shadcn/ui, Zustand). This Next.js version has breaking changes: read
   `frontend/AGENTS.md` and `frontend/node_modules/next/dist/docs/` before
-  using unfamiliar APIs.
+  using unfamiliar APIs. `npm run build` also runs
+  `scripts/flatten-segments.mjs` (fixes prefetch 404s in the export).
 - **Backend:** Python, FastAPI, Uvicorn. It serves the API, the WebSockets,
   and the built frontend from **one origin**.
+- **Data:** Postgres (Neon) via SQLModel; SQLite locally. Tables are created
+  at startup (`create_all`, no migrations yet).
+- **Auth:** Google OAuth (code + PKCE) done by the backend; HttpOnly session
+  cookie, hashed in the database. `DEV_LOGIN=true` for local testing only.
 - **Model:** `google/medgemma-1.5-4b-it` served by `model-space/app.py`
   (Gradio), called via `gradio_client`. Free: Colab T4 + a `gradio.live`
   link (`model-space/colab.ipynb`). Paid: a Hugging Face GPU Space.
@@ -34,35 +42,45 @@ Demo script: `docs/demo.md`. Requirements of record:
 
 ## Rules
 
-- **Run the backend as exactly one process.** Consultations and call rooms
-  live in memory. `--workers` or a second replica silently breaks calls.
-- **No secrets in the repo.** `HF_TOKEN` and the TURN keys go in
-  `backend/.env` (gitignored) or the Render and Space dashboards.
-- **Keep the emergency path independent of the AI.** The 102 number and the
-  urgent banner never wait on the model.
+- **Run the backend as exactly one process.** The queue and call rooms live
+  in memory. `--workers` or a second replica silently breaks calls.
+- **No secrets in the repo.** `HF_TOKEN`, TURN keys, `DATABASE_URL` and the
+  Google client secret go in `backend/.env` (gitignored) or the Render and
+  Space dashboards.
+- **Keep the emergency path independent of the AI, the login and the
+  database.** The 102 number, the urgent banner, chat and "request a doctor"
+  never wait on the model, never ask to sign in, and keep working if the
+  database is down.
+- **Only verified professionals see patients.** Check it on the server
+  (`require_professional`, `professional_badge_for_session`), never only in
+  the UI.
 - **The model gives first-aid information, not diagnosis.** Don't add
   medicine doses or diagnostic claims to prompts or UI.
+- **Commits:** one per logical change, with a detailed message (what, why,
+  files, checks). No Claude co-author or attribution lines.
 - **Verify before claiming something works:**
   - backend: `ruff check` + `pytest`
   - frontend: `lint` + `typecheck` + `build`
-  - anything touching chat or calls: `scripts/smoke_test.py` against a
-    running server
-- Commit per logical change.
+  - anything touching chat, calls, sign-in or verification:
+    `scripts/smoke_test.py` against a running server
 
 ## Ship list
 
 - [x] Fix config crash, single worker, same-origin frontend (no build-time API URL)
-- [x] Chat endpoint → MedGemma Space: timeout, clear errors, history cap, rate limit
+- [x] Chat endpoint → MedGemma: timeout, clear errors, history cap, rate limit
 - [x] Chat page: bilingual, "thinking…" state, retry, emergency banner, survives refresh
-- [x] Talk to a doctor: request → live doctor queue (tone alert) → atomic accept, chat handoff with consent
+- [x] Talk to a doctor: request → live queue (tone alert) → atomic accept, chat handoff with consent
 - [x] Video call: camera/mic, two-way audio+video, mute, camera off, hang up, voice-only fallback, refresh-rejoin
-- [x] HF Space code (`model-space/`), Docker image, Render blueprint, CI
-- [x] Two-browser end-to-end smoke test (`scripts/smoke_test.py`)
-- [x] Free model hosting: Colab notebook + share link (HF free tier is static-only)
-- [ ] Accept the MedGemma terms and run the model on Colab (docs/deployment.md §1)
-- [ ] Create free ExpressTURN credentials (§2; Cloudflare needs a card)
-- [ ] Deploy to Render; `/health` shows model and TURN configured (§3)
-- [ ] Smoke test passes against the deployed URL
+- [x] Model hosting (Colab notebook + share link), Docker image, Render blueprint, CI
+- [x] Deployed: model on Colab, ExpressTURN, Render; smoke test passed against the live URL
+- [x] Database, Google sign-in, roles
+- [x] Professional verification (doctor NMC / pharmacist NPC / student recommendation + citizenship), admin review page
+- [x] Queue and accept limited to verified professionals; "Verified Doctor" badge for patients
+- [x] Emergency-first home page; saved chats for signed-in patients
+- [x] Smoke test covers apply → approve → call → badge → saved chats (13/13 locally)
+- [ ] Create the Neon database and Google OAuth client; add the 4 new Render variables (docs/deployment.md §3–5)
+- [ ] Approve the demo doctor's account; leave one sample application pending (§6)
+- [ ] Smoke test against the deployed URL with `--pro-session` (§7)
 - [ ] Real call between two laptops on **different networks**
 - [ ] Check real MedGemma replies to the demo sentences, in English and Nepali
 - [ ] Rehearse the 5-minute script (docs/demo.md) and record a backup video
@@ -72,5 +90,6 @@ Demo script: `docs/demo.md`. Requirements of record:
 ```bash
 cd backend && .venv/Scripts/pytest && .venv/Scripts/ruff check app tests ../model-space ../scripts
 cd frontend && npm run lint && npm run typecheck && npm run build
+# Local end-to-end (server with DEV_LOGIN=true ADMIN_EMAILS=admin@smoke.test):
 python scripts/smoke_test.py http://localhost:8000     # needs `pip install playwright`
 ```
