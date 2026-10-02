@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.main import create_app
 from app.realtime.websocket import reset_realtime_state
 from app.services import chat_rate_limiter, consultations
+from app.services.auth import reset_pending_logins
 
 ADMIN_EMAIL = "admin@example.com"
 
@@ -42,6 +43,7 @@ def clean_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     consultations.clear()
     chat_rate_limiter.clear()
     reset_realtime_state()
+    reset_pending_logins()
     yield
     consultations.clear()
     chat_rate_limiter.clear()
@@ -71,3 +73,12 @@ def fake_model(monkeypatch: pytest.MonkeyPatch) -> list[list[dict[str, str]]]:
 def session() -> Iterator[Session]:
     with Session(db.get_engine()) as s:
         yield s
+
+
+def sign_in(client: TestClient, email: str, name: str = "Test User") -> dict:
+    """Development login; the client keeps the session cookie."""
+    response = client.post(
+        "/api/v1/auth/dev-login", json={"email": email, "name": name}
+    )
+    assert response.status_code == 200, response.text
+    return response.json()

@@ -72,7 +72,9 @@ def create_app() -> FastAPI:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=settings.cors_origin_list,
-            allow_credentials=False,
+            # The session cookie must travel when `next dev` (:3000) calls
+            # the API (:8000). Origins are an explicit list, never "*".
+            allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
         )

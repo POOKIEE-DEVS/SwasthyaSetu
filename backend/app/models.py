@@ -1,7 +1,7 @@
 """Database tables.
 
-Datetimes are stored as naive UTC (SQLite keeps no timezone) and sent to
-clients as Unix timestamps, so browsers never misread them as local time.
+Datetimes are timezone-aware UTC, and are sent to clients as Unix
+timestamps, so browsers never misread them as local time.
 
 No ``from __future__ import annotations`` here: SQLModel reads the field
 annotations at class creation.
@@ -17,11 +17,13 @@ ROLES = ("patient", *PROFESSIONAL_ROLES)
 
 
 def utcnow() -> datetime:
-    return datetime.now(UTC).replace(tzinfo=None)
+    return datetime.now(UTC)
 
 
 def timestamp(value: datetime | None) -> float | None:
-    return None if value is None else value.replace(tzinfo=UTC).timestamp()
+    if value is None:
+        return None
+    return (value if value.tzinfo else value.replace(tzinfo=UTC)).timestamp()
 
 
 class User(SQLModel, table=True):
