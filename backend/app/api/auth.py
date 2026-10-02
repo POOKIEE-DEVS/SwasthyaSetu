@@ -24,6 +24,7 @@ from app.schemas.auth import (
     RoleChoice,
     UserPublic,
 )
+from app.services import verification
 from app.services.auth import (
     SESSION_COOKIE,
     STATE_COOKIE,
@@ -45,7 +46,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 STATE_COOKIE_PATH = "/api/v1/auth"
 
 
-def user_public(user: User) -> UserPublic:
+def user_public(user: User, db: Session) -> UserPublic:
     assert user.id is not None
     return UserPublic(
         id=user.id,
@@ -54,6 +55,7 @@ def user_public(user: User) -> UserPublic:
         picture_url=user.picture_url,
         role=user.role,
         is_admin=is_admin(user),
+        verification=verification.summary(verification.application_for(db, user)),
     )
 
 
@@ -78,9 +80,11 @@ def _set_session_cookie(response: Response, request: Request, token: str) -> Non
 
 
 @router.get("/me", response_model=MeResponse)
-def me(user: User | None = Depends(optional_user)) -> MeResponse:
+def me(
+    user: User | None = Depends(optional_user), db: Session = Depends(get_session)
+) -> MeResponse:
     return MeResponse(
-        user=user_public(user) if user else None,
+        user=user_public(user, db) if user else None,
         google_enabled=settings.google_configured,
         dev_login=settings.dev_login_enabled,
     )
@@ -157,11 +161,21 @@ def choose_role(
     user: User = Depends(current_user),
     db: Session = Depends(get_session),
 ) -> UserPublic:
+    application = verification.application_for(db, user)
+    if (
+        application is not None
+        and application.status == "approved"
+        and body.role != application.role
+    ):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "Your account is verified for a professional role and can't switch.",
+        )
     user.role = body.role
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user_public(user)
+    return user_public(user, db)
 
 
 @router.post("/dev-login", response_model=UserPublic)
@@ -177,4 +191,4 @@ def dev_login(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found.")
     user = upsert_dev_user(db, body.email, body.name)
     _set_session_cookie(response, request, create_session(db, user))
-    return user_public(user)
+    return user_public(user, db)

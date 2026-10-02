@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.schemas.verification import VerificationSummary
+
 Role = Literal["patient", "doctor", "pharmacist", "student"]
 
 
@@ -14,6 +16,8 @@ class UserPublic(BaseModel):
     picture_url: str | None
     role: Role | None
     is_admin: bool
+    # Professionals only: where their verification stands.
+    verification: VerificationSummary | None = None
 
 
 class MeResponse(BaseModel):
