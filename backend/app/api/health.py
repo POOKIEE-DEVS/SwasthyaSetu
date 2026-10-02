@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 from app import __version__
 from app.core.config import settings
+from app.db import database_ready
 from app.realtime.ice import turn_configured
 from app.schemas.health import HealthResponse
 
@@ -21,5 +22,6 @@ async def health() -> HealthResponse:
         model_configured=settings.model_configured,
         turn_configured=turn_configured(),
         database=settings.database_kind,
+        database_ready=database_ready(),
         google_sign_in_configured=settings.google_configured,
     )

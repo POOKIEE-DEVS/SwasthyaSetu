@@ -30,7 +30,7 @@ from app.api import api_router
 from app.api import health as health_routes
 from app.core.config import settings
 from app.core.logging import configure_logging
-from app.db import init_db
+from app.db import try_init_db
 from app.realtime import websocket as websocket_routes
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,8 @@ mimetypes.add_type("application/manifest+json", ".webmanifest")
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     configure_logging(settings.log_level, json_output=settings.log_json)
-    init_db()
+    # Never fatal: the emergency chat and patient calls work without it.
+    database_ready = try_init_db()
     logger.info(
         "backend starting",
         extra={
@@ -51,6 +52,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             "environment": settings.environment,
             "model_configured": settings.model_configured,
             "database": settings.database_kind,
+            "database_ready": database_ready,
             "google_sign_in": settings.google_configured,
             "serving_frontend": settings.static_path.is_dir(),
         },

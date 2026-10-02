@@ -16,4 +16,7 @@ class HealthResponse(BaseModel):
     # "sqlite" in production means DATABASE_URL is missing: accounts and
     # approvals would be lost on the next restart.
     database: Literal["postgres", "sqlite"]
+    # False: DATABASE_URL is wrong or the database is down. Chat and patient
+    # calls still work; sign-in, verification and history do not.
+    database_ready: bool
     google_sign_in_configured: bool

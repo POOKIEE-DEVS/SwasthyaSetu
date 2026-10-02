@@ -6,7 +6,7 @@ from collections.abc import Iterator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session
 
 from app import db
 from app.ai.medgemma import medgemma
@@ -31,9 +31,8 @@ def clean_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     # A fresh in-memory database per test. Development login on, Google off.
     engine = db.make_engine("sqlite://")
     monkeypatch.setattr(db, "_engine", engine)
-    from app import models  # noqa: F401
-
-    SQLModel.metadata.create_all(engine)
+    monkeypatch.setattr(db, "_ready", False)
+    db.init_db()
     monkeypatch.setattr(settings, "environment", "development")
     monkeypatch.setattr(settings, "dev_login", True)
     monkeypatch.setattr(settings, "google_client_id", "")
