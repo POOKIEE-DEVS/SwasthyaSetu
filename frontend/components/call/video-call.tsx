@@ -1,10 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Mic, MicOff, PhoneOff, RefreshCw, Video, VideoOff, Volume2 } from "lucide-react";
+import {
+  BadgeCheck,
+  Loader2,
+  Mic,
+  MicOff,
+  PhoneOff,
+  RefreshCw,
+  Video,
+  VideoOff,
+  Volume2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import type { CallTicket } from "@/lib/api";
+import { ROLE_LABEL, type CallTicket } from "@/lib/api";
 import { useCall, type CallStatus } from "@/lib/use-call";
 import { cn } from "@/lib/utils";
 
@@ -63,6 +73,11 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
   }
 
   const peerVisible = call.status === "connected" && call.remoteStream;
+  // The patient sees who accepted: their verified role and name.
+  const badge =
+    ticket.role === "patient" && call.professional
+      ? `Verified ${ROLE_LABEL[call.professional.role]} · ${call.professional.name}`
+      : null;
 
   return (
     <div className="flex flex-col gap-3">
@@ -81,6 +96,12 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
               {call.status === "waiting" && !call.message ? waitingText : STATUS_TEXT[call.status]}
             </p>
             {call.message && <p className="max-w-md text-sm text-white/80">{call.message}</p>}
+            {badge && call.status === "connecting" && (
+              <p className="flex items-center gap-1.5 text-sm text-white/90">
+                <BadgeCheck aria-hidden className="size-4 text-triage-green" />
+                {badge} accepted your request
+              </p>
+            )}
             {call.status === "failed" && (
               <Button variant="secondary" onClick={call.reconnect}>
                 <RefreshCw aria-hidden />
@@ -91,8 +112,12 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
         )}
 
         {peerVisible && (
-          <span className="absolute left-3 top-3 rounded-md bg-black/60 px-2 py-1 text-sm text-white">
-            {peerName}
+          <span
+            data-testid="peer-label"
+            className="absolute left-3 top-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-sm text-white"
+          >
+            {badge && <BadgeCheck aria-hidden className="size-4 text-triage-green" />}
+            {badge ?? peerName}
           </span>
         )}
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { api, wsUrl, type CallTicket } from "@/lib/api";
+import { api, wsUrl, type CallTicket, type ProfessionalBadge } from "@/lib/api";
 
 /**
  * One WebRTC video call between the patient and the doctor.
@@ -26,8 +26,13 @@ export type CallStatus =
   | "failed";
 
 type Signal =
-  | { type: "joined"; role: string; peer_present: boolean }
-  | { type: "peer-joined"; role: string }
+  | {
+      type: "joined";
+      role: string;
+      peer_present: boolean;
+      professional?: ProfessionalBadge | null;
+    }
+  | { type: "peer-joined"; role: string; professional?: ProfessionalBadge | null }
   | { type: "peer-left"; role: string }
   | { type: "offer" | "answer"; payload: RTCSessionDescriptionInit }
   | { type: "ice-candidate"; payload: RTCIceCandidateInit }
@@ -80,6 +85,10 @@ async function getMedia(): Promise<{ stream: MediaStream; hasVideo: boolean }> {
 
 export function useCall(ticket: CallTicket | null) {
   const [status, setStatus] = useState<CallStatus>("starting");
+  // Who accepted (verified name and role), for the patient's badge.
+  const [professional, setProfessional] = useState<ProfessionalBadge | null>(
+    ticket?.consultation.professional ?? null,
+  );
   const [message, setMessage] = useState<string | null>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -217,10 +226,12 @@ export function useCall(ticket: CallTicket | null) {
     async function onSignal(signal: Signal) {
       switch (signal.type) {
         case "joined":
+          if (signal.professional) setProfessional(signal.professional);
           setStatus(signal.peer_present ? "connecting" : "waiting");
           break;
 
         case "peer-joined": {
+          if (signal.professional) setProfessional(signal.professional);
           // We were here first: make the offer.
           setStatus("connecting");
           setMessage(null);
@@ -406,6 +417,7 @@ export function useCall(ticket: CallTicket | null) {
   return {
     status,
     message,
+    professional,
     localStream,
     remoteStream,
     hasVideo,
