@@ -35,6 +35,7 @@ import argparse
 import base64
 import re
 import sys
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -47,6 +48,24 @@ SESSION_COOKIE = "swasthya_session"
 PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 )
+
+
+def write_fake_camera(path: Path) -> None:
+    """A small Y4M clip (320x240, moving gradient) for Chrome to play as the
+    camera. Chrome's built-in fake camera sometimes ends its own track a
+    moment after it starts, or ~35 s in, with no page code involved (7 of 16
+    tracks in a bare-page test on Windows); a file-backed camera doesn't."""
+    width, height, frames = 320, 240, 20
+    quarter = width * height // 4
+    with path.open("wb") as f:
+        f.write(f"YUV4MPEG2 W{width} H{height} F15:1 Ip A1:1 C420jpeg\n".encode())
+        for n in range(frames):
+            f.write(b"FRAME\n")
+            luma = ((x + y + n * 8) % 256 for y in range(height) for x in range(width))
+            f.write(bytes(luma))
+            f.write(bytes([128]) * quarter)
+            f.write(bytes([(n * 12) % 256]) * quarter)
+
 
 REMOTE_PLAYING = """() => {
   const v = document.querySelectorAll('video')[0];
@@ -71,6 +90,34 @@ PC_SPY = """(() => {
     return pc;
   };
   window.RTCPeerConnection.prototype = Original.prototype;
+})();
+// Media events, for diagnosing a camera track that ends mid-call.
+(() => {
+  window.__media = [];
+  const t0 = performance.now();
+  const log = (what) =>
+    window.__media.push(`${Math.round(performance.now() - t0)}ms ${what}`);
+  const md = navigator.mediaDevices;
+  if (!md) return;
+  const gum = md.getUserMedia.bind(md);
+  md.getUserMedia = async (c) => {
+    log(`getUserMedia(${JSON.stringify(Object.keys(c || {}))})`);
+    const stream = await gum(c);
+    for (const t of stream.getTracks()) {
+      log(`  got ${t.kind} ${t.id.slice(0, 6)}`);
+      t.addEventListener("ended", () => log(`ended ${t.kind} ${t.id.slice(0, 6)}`));
+    }
+    return stream;
+  };
+  const stop = MediaStreamTrack.prototype.stop;
+  MediaStreamTrack.prototype.stop = function () {
+    // Who stopped it: our code calls stop(); the browser ending a track
+    // shows up as "ended" with no stop() before it.
+    const caller = (new Error().stack || "")
+      .split(String.fromCharCode(10)).slice(2, 4).join(" | ").trim();
+    log(`stop() ${this.kind} ${this.id.slice(0, 6)} <- ${caller}`);
+    return stop.call(this);
+  };
 })();"""
 
 # Connection, track, and RTP counters for every peer connection and video.
@@ -139,19 +186,29 @@ def main() -> int:
             raise
         results.append((name, True, f"{detail} ({time.time() - started:.1f}s)".strip()))
 
+    camera_file = Path(tempfile.gettempdir()) / "swasthyasetu-fake-camera.y4m"
+    write_fake_camera(camera_file)
+
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(
-            channel="chrome",
-            headless=not args.headed,
-            args=[
-                "--use-fake-device-for-media-stream",
-                "--use-fake-ui-for-media-stream",
-                "--autoplay-policy=no-user-gesture-required",
-            ],
-        )
+
+        def launch():
+            return pw.chromium.launch(
+                channel="chrome",
+                headless=not args.headed,
+                args=[
+                    "--use-fake-device-for-media-stream",
+                    "--use-fake-ui-for-media-stream",
+                    "--autoplay-policy=no-user-gesture-required",
+                    f"--use-file-for-fake-video-capture={camera_file}",
+                ],
+            )
+
+        # One Chrome process per call participant, like two laptops.
+        browsers = {"doctor": launch(), "patient": launch()}
+        browsers["admin"] = browsers["doctor"]  # never uses the camera
 
         def new_page(role: str):
-            context = browser.new_context(
+            context = browsers[role].new_context(
                 permissions=["camera", "microphone"],
                 viewport={"width": 1280, "height": 800},
             )
@@ -414,10 +471,16 @@ def main() -> int:
                         print(f"    {role} video#{i}: {video}")
                 except Exception as exc:
                     print(f"    {role} diagnostics unavailable: {exc}")
+                try:
+                    for line in page.evaluate("() => window.__media ?? []")[-15:]:
+                        print(f"    {role} media: {line[:300]}")
+                except Exception as exc:
+                    print(f"    {role} media log unavailable: {exc}")
                 for line in logs[role][-10:]:
                     print(f"    {role} console: {line[:220]}")
         finally:
-            browser.close()
+            for b in {id(b): b for b in browsers.values()}.values():
+                b.close()
 
     print()
     for name, ok, detail in results:
