@@ -15,3 +15,4 @@ docs
 model-space
 scripts
 *.pdf
+**/*.db
