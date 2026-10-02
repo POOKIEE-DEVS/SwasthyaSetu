@@ -1,32 +1,52 @@
-"""Pre-demo smoke test: the whole demo flow in two real Chrome windows.
+"""Pre-demo smoke test: the whole demo flow in real Chrome windows.
 
-Runs the patient and the doctor side by side, with Chrome's fake camera and
-microphone:
+Runs a professional, an admin and a patient side by side, with Chrome's
+fake camera and microphone:
 
-  doctor goes online -> patient chats (English, then urgent Nepali)
-  -> patient requests a doctor -> doctor sees them live, with the shared chat
-  -> doctor accepts -> two-way audio+video connects
-  -> mute / camera off -> patient refreshes mid-call and the call re-establishes
-  -> doctor hangs up -> both sides end cleanly
+  professional signs in -> applies as a doctor with documents
+  -> admin approves -> professional goes online
+  -> patient chats (English, then urgent Nepali) -> requests a doctor
+  -> professional sees them live, with the shared chat -> accepts
+  -> two-way audio+video, patient sees "Verified Doctor" -> mute / camera off
+  -> patient refreshes mid-call and the call re-establishes -> hang up
+  -> patient signs in and finds the conversation in "My chats"
 
-Run it against the deployed URL before every rehearsal and the demo itself:
+Locally, run the server with DEV_LOGIN=true and ADMIN_EMAILS including
+admin@smoke.test; the test then signs everyone in without Google:
 
     pip install playwright          # uses your installed Chrome
-    python scripts/smoke_test.py https://your-app.onrender.com
+    python scripts/smoke_test.py http://localhost:8000
+
+Against the deployed site (Google sign-in only), pass the session cookie of
+an already verified professional; the sign-up, review and patient sign-in
+steps are skipped:
+
+    python scripts/smoke_test.py https://your-app.onrender.com \\
+        --pro-session <value of the swasthya_session cookie>
 
 Add --shots DIR to save screenshots. Exits non-zero if any step fails.
-Against the real model the first reply can take a while (Space cold start);
-the chat step waits up to 3 minutes.
+Against the real model the first reply can take a while (cold start); the
+chat step waits up to 3 minutes.
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
+import re
 import sys
 import time
+import uuid
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
+
+ADMIN_EMAIL = "admin@smoke.test"
+SESSION_COOKIE = "swasthya_session"
+# A real 1x1 PNG, used for every uploaded document.
+PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+)
 
 REMOTE_PLAYING = """() => {
   const v = document.querySelectorAll('video')[0];
@@ -89,19 +109,26 @@ def main() -> int:
     parser.add_argument("base_url", help="e.g. https://your-app.onrender.com")
     parser.add_argument("--shots", type=Path, help="save screenshots here")
     parser.add_argument("--headed", action="store_true", help="show the browsers")
+    parser.add_argument(
+        "--pro-session",
+        help="session cookie of a verified professional (for the deployed site)",
+    )
     args = parser.parse_args()
     base = args.base_url.rstrip("/")
     if args.shots:
         args.shots.mkdir(parents=True, exist_ok=True)
 
+    run_id = uuid.uuid4().hex[:6]
+    pro_name = f"Dr. Smoke {run_id}"
+    roles = ("doctor", "patient", "admin")
     results: list[tuple[str, bool, str]] = []
-    errors: dict[str, list[str]] = {"doctor": [], "patient": []}
+    errors: dict[str, list[str]] = {r: [] for r in roles}
     # Recent console output of every level, for diagnosing a failed step.
-    logs: dict[str, list[str]] = {"doctor": [], "patient": []}
+    logs: dict[str, list[str]] = {r: [] for r in roles}
 
     def shot(page, name: str) -> None:
         if args.shots:
-            page.screenshot(path=str(args.shots / f"{name}.png"))
+            page.screenshot(path=str(args.shots / f"{name}.png"), full_page=True)
 
     def step(name: str, fn) -> None:
         started = time.time()
@@ -137,21 +164,91 @@ def main() -> int:
                     errors[role].append(m.text)
 
             page.on("console", on_console)
-            page.on("pageerror", lambda e: errors[role].append(f"pageerror: {e}"))
+            page.on(
+                "pageerror", lambda e, role=role: errors[role].append(f"pageerror: {e}")
+            )
             return page
 
         doctor = new_page("doctor")
         patient = new_page("patient")
+        admin = new_page("admin")
 
-        def doctor_online():
+        me = doctor.request.get(f"{base}/api/v1/auth/me").json()
+        dev_mode = bool(me.get("dev_login"))
+        if not dev_mode and not args.pro_session:
+            print(
+                "This server has no development login. Pass --pro-session with the\n"
+                "swasthya_session cookie of a verified professional (see --help)."
+            )
+            return 2
+
+        def dev_sign_in(page, email: str, name: str) -> None:
+            page.get_by_label("Development email").fill(email)
+            page.get_by_label("Development name").fill(name)
+            page.get_by_role("button", name="Sign in for testing").click()
+
+        def professional_applies():
             doctor.goto(f"{base}/doctor/")
+            expect(
+                doctor.get_by_text("For medical professionals").first
+            ).to_be_visible()
+            doctor.get_by_role("link", name="Sign in", exact=True).last.click()
+            dev_sign_in(doctor, f"doctor-{run_id}@smoke.test", pro_name)
+            # Exact start: the student card mentions "a doctor" too.
+            doctor.get_by_role("button", name=re.compile(r"^Doctor")).click()
+            expect(doctor.get_by_role("heading", name="Get verified")).to_be_visible(
+                timeout=15000
+            )
+            doctor.get_by_label("Full name, as on your citizenship").fill(pro_name)
+            doctor.get_by_label("Phone number").fill("9841234567")
+            doctor.get_by_label("Citizenship number").fill("27-01-71-12345")
+            doctor.get_by_label("Issuing district").fill("Kathmandu")
+            doctor.get_by_label("registration number").fill("12345")
+            for label in (
+                "Citizenship: front",
+                "Citizenship: back",
+                "NMC registration certificate",
+            ):
+                doctor.get_by_label(label).set_input_files(
+                    {"name": "doc.png", "mimeType": "image/png", "buffer": PNG}
+                )
+            doctor.get_by_role("checkbox").check()
+            shot(doctor, "0-apply-form")
+            doctor.get_by_role("button", name="Submit for review").click()
+            expect(doctor.get_by_text("Waiting for review")).to_be_visible(
+                timeout=15000
+            )
+
+        def admin_approves():
+            admin.goto(f"{base}/account/?next=/admin/")
+            dev_sign_in(admin, ADMIN_EMAIL, "Smoke Admin")
+            admin.wait_for_url("**/admin/", timeout=15000)
+            card = admin.get_by_test_id("application").filter(has_text=pro_name)
+            expect(card).to_be_visible(timeout=15000)
+            # Every document is viewable by the admin.
+            expect(card.get_by_role("img")).to_have_count(3)
+            shot(admin, "1-admin-review")
+            card.get_by_role("button", name="Approve").click()
+            expect(card).to_have_count(0, timeout=15000)
+
+        def professional_goes_online():
+            if dev_mode:
+                doctor.get_by_role("button", name="Check again").click()
+            else:
+                doctor.context.add_cookies(
+                    [{"name": SESSION_COOKIE, "value": args.pro_session, "url": base}]
+                )
+                doctor.goto(f"{base}/doctor/")
+            expect(doctor.get_by_text("Verified Doctor").first).to_be_visible(
+                timeout=15000
+            )
             doctor.get_by_role("button", name="Go online").click()
             expect(doctor.get_by_text("Online · you'll hear a tone")).to_be_visible(
                 timeout=15000
             )
 
         def patient_chats():
-            patient.goto(f"{base}/patient/")
+            patient.goto(f"{base}/")
             box = patient.get_by_label("Message")
             box.fill("I burned my hand on the stove")
             box.press("Enter")
@@ -167,7 +264,10 @@ def main() -> int:
             expect(patient.get_by_text("This may be an emergency")).to_be_visible(
                 timeout=180_000
             )
-            shot(patient, "1-patient-chat")
+            expect(patient.locator('[data-role="assistant"]')).to_have_count(
+                2, timeout=180_000
+            )
+            shot(patient, "2-patient-chat")
 
         def request_doctor():
             patient.get_by_role(
@@ -186,7 +286,7 @@ def main() -> int:
             expect(
                 card.get_by_text("I burned my hand on the stove").first
             ).to_be_visible()
-            shot(doctor, "2-doctor-queue")
+            shot(doctor, "3-doctor-queue")
 
         def call_connects():
             card = doctor.get_by_role("listitem").filter(has_text="Smoke Test")
@@ -197,9 +297,16 @@ def main() -> int:
             assert d == {"audio": 1, "video": 1}, f"doctor received {d}"
             assert p == {"audio": 1, "video": 1}, f"patient received {p}"
             time.sleep(1.5)
-            shot(doctor, "3-doctor-call")
-            shot(patient, "4-patient-call")
+            shot(doctor, "4-doctor-call")
+            shot(patient, "5-patient-call")
             return f"doctor recv {d}, patient recv {p}"
+
+        def patient_sees_badge():
+            label = patient.get_by_test_id("peer-label")
+            expect(label).to_contain_text("Verified Doctor")
+            if dev_mode:
+                expect(label).to_contain_text(pro_name)
+            return label.inner_text()
 
         def controls():
             patient.get_by_role("button", name="Mute microphone").click()
@@ -225,6 +332,10 @@ def main() -> int:
                 + " && v.videoWidth > 0 && v.readyState >= 2; }",
                 timeout=45000,
             )
+            # The badge survives the refresh (it comes back with "joined").
+            expect(patient.get_by_test_id("peer-label")).to_contain_text(
+                "Verified Doctor"
+            )
 
         def hang_up():
             doctor.get_by_role("button", name="End call").click()
@@ -237,30 +348,64 @@ def main() -> int:
                 patient.get_by_text("I burned my hand on the stove").first
             ).to_be_visible()
 
+        def patient_signs_in_and_finds_chat():
+            patient.get_by_role("link", name="Sign in to save chats").click()
+            dev_sign_in(patient, f"patient-{run_id}@smoke.test", "Smoke Patient")
+            patient.get_by_role("button", name=re.compile(r"^Patient")).click()
+            patient.wait_for_url(f"{base}/", timeout=15000)
+            patient.get_by_role("button", name="My chats").click()
+            saved = patient.get_by_role("list", name="Saved chats")
+            expect(saved.get_by_text("I burned my hand on the stove")).to_be_visible(
+                timeout=15000
+            )
+            shot(patient, "6-my-chats")
+
         steps = [
-            ("doctor goes online", doctor_online),
+            ("doctor goes online", professional_goes_online),
             ("patient chat gets a model reply", patient_chats),
             ("urgent Nepali message shows emergency banner", urgent_nepali),
-            ("patient requests a doctor", request_doctor),
-            ("doctor queue shows patient + shared chat", doctor_sees_patient),
+            ("patient requests a doctor (no login)", request_doctor),
+            ("professional sees patient + shared chat", doctor_sees_patient),
             ("video call connects both ways (audio + video)", call_connects),
+            ("patient sees the verified badge", patient_sees_badge),
             ("mute and camera-off toggle the real tracks", controls),
             ("patient refresh mid-call re-establishes the call", refresh_rejoins),
             ("hang up ends both sides, chat kept", hang_up),
         ]
+        if dev_mode:
+            steps = [
+                (
+                    "professional signs in and applies with documents",
+                    professional_applies,
+                ),
+                ("admin reviews documents and approves", admin_approves),
+                *steps,
+                (
+                    "patient signs in; chat appears in My chats",
+                    patient_signs_in_and_finds_chat,
+                ),
+            ]
+            steps[2] = ("verified professional goes online", professional_goes_online)
+
         try:
             for name, fn in steps:
                 step(name, fn)
         except Exception:
             # Show what each side was looking at when the step failed.
-            for role, page in (("doctor", doctor), ("patient", patient)):
+            for role, page in (
+                ("doctor", doctor),
+                ("patient", patient),
+                ("admin", admin),
+            ):
                 try:
                     screen = page.evaluate(
                         "() => document.querySelector('main')?.innerText ?? ''"
                     )
                 except Exception as exc:
                     screen = f"(unavailable: {exc})"
-                print(f"\n--- {role} screen at failure ---\n{screen[:300]}")
+                print(
+                    f"\n--- {role} screen at failure ({page.url}) ---\n{screen[:300]}"
+                )
                 try:
                     diag = page.evaluate(CALL_DIAGNOSTICS)
                     for i, pc in enumerate(diag["pcs"]):
