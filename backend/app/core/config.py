@@ -63,6 +63,29 @@ class Settings(BaseSettings):
     # Unanswered or finished requests are dropped from memory after this.
     consultation_ttl_minutes: int = 60
 
+    # --- Database ----------------------------------------------------------
+    # Postgres in production (a Neon or Supabase connection string). The
+    # SQLite default is for local development only: Render's disk is wiped
+    # on every restart, so accounts and approvals stored there would vanish.
+    database_url: str = "sqlite:///./swasthyasetu.db"
+
+    # --- Sign-in (Google OAuth) ----------------------------------------
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    # The site's public base URL, e.g. https://swasthyasetu-580o.onrender.com.
+    # Google redirects back to {PUBLIC_URL}/api/v1/auth/google/callback.
+    # Empty: derived from the request, which works behind Render's proxy.
+    public_url: str = ""
+    # Comma-separated Google account emails allowed into the admin review page.
+    admin_emails: str = ""
+    session_days: int = 30
+    # Local development and the smoke test only: sign in without Google.
+    # Always off when ENVIRONMENT=production.
+    dev_login: bool = False
+
+    # --- Professional verification documents ---------------------------
+    max_upload_bytes: int = 5 * 1024 * 1024
+
     @property
     def cors_origin_list(self) -> list[str]:
         return split_csv(self.cors_origins)
@@ -86,6 +109,34 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
+
+    @property
+    def admin_email_list(self) -> list[str]:
+        return [email.lower() for email in split_csv(self.admin_emails)]
+
+    @property
+    def google_configured(self) -> bool:
+        return bool(self.google_client_id and self.google_client_secret)
+
+    @property
+    def dev_login_enabled(self) -> bool:
+        return self.dev_login and not self.is_production
+
+    @property
+    def sqlalchemy_database_url(self) -> str:
+        """Neon and Supabase hand out ``postgres://`` / ``postgresql://`` URLs;
+        SQLAlchemy needs the driver named to use psycopg 3."""
+        url = self.database_url.strip()
+        for prefix in ("postgres://", "postgresql://"):
+            if url.startswith(prefix):
+                return "postgresql+psycopg://" + url[len(prefix) :]
+        return url
+
+    @property
+    def database_kind(self) -> Literal["postgres", "sqlite"]:
+        if self.sqlalchemy_database_url.startswith("sqlite"):
+            return "sqlite"
+        return "postgres"
 
 
 settings = Settings()

@@ -20,4 +20,6 @@ async def health() -> HealthResponse:
         uptime_seconds=round(time.monotonic() - _started_at, 3),
         model_configured=settings.model_configured,
         turn_configured=turn_configured(),
+        database=settings.database_kind,
+        google_sign_in_configured=settings.google_configured,
     )

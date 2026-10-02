@@ -33,3 +33,7 @@ Thumbs.db
 
 # Gradio local cache (share-link certificates, flagged data)
 .gradio/
+
+# Local development database (production uses Postgres via DATABASE_URL)
+*.db
+*.db-journal

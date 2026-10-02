@@ -27,3 +27,38 @@ def test_empty_list_values(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert s.cors_origin_list == []
     assert s.turn_url_list == []
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected", "kind"),
+    [
+        (
+            "postgres://u:p@host/db?sslmode=require",
+            "postgresql+psycopg://u:p@host/db?sslmode=require",
+            "postgres",
+        ),
+        ("postgresql://u:p@host/db", "postgresql+psycopg://u:p@host/db", "postgres"),
+        (" sqlite:///./local.db ", "sqlite:///./local.db", "sqlite"),
+    ],
+)
+def test_database_url_gets_the_psycopg_driver(
+    monkeypatch: pytest.MonkeyPatch, raw: str, expected: str, kind: str
+) -> None:
+    # Neon and Supabase hand out postgres:// URLs; a pasted value may carry
+    # stray spaces (that exact mistake broke HF_SPACE_ID once).
+    monkeypatch.setenv("DATABASE_URL", raw)
+    s = Settings(_env_file=None)
+    assert s.sqlalchemy_database_url == expected
+    assert s.database_kind == kind
+
+
+def test_dev_login_is_never_on_in_production(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEV_LOGIN", "true")
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    assert Settings(_env_file=None).dev_login_enabled is False
+
+
+def test_admin_emails_are_case_insensitive(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ADMIN_EMAILS", "Admin@Example.com, second@example.com")
+    s = Settings(_env_file=None)
+    assert s.admin_email_list == ["admin@example.com", "second@example.com"]

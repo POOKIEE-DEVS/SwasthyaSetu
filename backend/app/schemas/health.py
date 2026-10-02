@@ -13,3 +13,7 @@ class HealthResponse(BaseModel):
     # would wake a sleeping GPU Space on every health check.
     model_configured: bool
     turn_configured: bool
+    # "sqlite" in production means DATABASE_URL is missing: accounts and
+    # approvals would be lost on the next restart.
+    database: Literal["postgres", "sqlite"]
+    google_sign_in_configured: bool

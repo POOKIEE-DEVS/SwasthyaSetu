@@ -8,6 +8,8 @@ def test_health(client: TestClient) -> None:
     assert body["status"] == "ok"
     assert body["model_configured"] is False
     assert body["turn_configured"] is False
+    assert body["database"] == "sqlite"
+    assert body["google_sign_in_configured"] is False
 
 
 def test_health_under_api_prefix(client: TestClient) -> None:

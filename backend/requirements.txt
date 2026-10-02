@@ -6,3 +6,9 @@ pydantic-settings>=2.6,<3
 httpx>=0.27,<1
 # Calls the MedGemma Gradio Space (handles its queue protocol and auth).
 gradio_client>=1.5,<3
+# Accounts, verification and chat history: Postgres in production, SQLite
+# locally. psycopg 3 ships binary wheels, so the image needs no compiler.
+sqlmodel>=0.0.22,<0.1
+psycopg[binary]>=3.2,<4
+# Multipart form parsing, for verification document uploads.
+python-multipart>=0.0.18
