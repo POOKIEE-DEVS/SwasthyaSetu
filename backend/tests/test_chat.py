@@ -26,7 +26,11 @@ def test_chat_returns_model_reply(client: TestClient, fake_model: list) -> None:
     response = client.post("/api/v1/chat", json=say("I cut my finger"))
 
     assert response.status_code == 200
-    assert response.json() == {"reply": "1. Stay calm.\n2. Rest.", "urgent": False}
+    assert response.json() == {
+        "reply": "1. Stay calm.\n2. Rest.",
+        "urgent": False,
+        "chat_id": None,  # guests: nothing is saved
+    }
     sent = fake_model[0]
     assert sent[0] == {"role": "system", "content": SYSTEM_PROMPT}
     assert sent[-1] == {

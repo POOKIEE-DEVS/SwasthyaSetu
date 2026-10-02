@@ -2,20 +2,29 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.concurrency import run_in_threadpool
 
 from app.ai.medgemma import ModelUnavailableError, medgemma
 from app.ai.prompts import build_model_messages, is_urgent
+from app.api.deps import optional_user
 from app.core.config import settings
+from app.models import User
 from app.schemas.chat import ChatRequest, ChatResponse
-from app.services import chat_rate_limiter
+from app.services import chat_rate_limiter, chats
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["chat"])
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(body: ChatRequest, request: Request) -> ChatResponse:
+async def chat(
+    body: ChatRequest,
+    request: Request,
+    # Optional: guests chat exactly as before. Without a session cookie
+    # this never touches the database.
+    user: User | None = Depends(optional_user),
+) -> ChatResponse:
     client_ip = request.client.host if request.client else "unknown"
     if not chat_rate_limiter.allow(client_ip):
         raise HTTPException(
@@ -45,4 +54,15 @@ async def chat(body: ChatRequest, request: Request) -> ChatResponse:
     except ModelUnavailableError as exc:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
 
-    return ChatResponse(reply=reply, urgent=urgent)
+    chat_id = None
+    if user is not None and user.id is not None:
+        try:
+            chat_id = await run_in_threadpool(
+                chats.save_exchange, user.id, body.chat_id, body.messages, reply
+            )
+        except Exception as exc:
+            # The reply matters more than the history: never fail the
+            # answer because saving it did.
+            logger.warning("could not save chat history", exc_info=exc)
+
+    return ChatResponse(reply=reply, urgent=urgent, chat_id=chat_id)
