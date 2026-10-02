@@ -54,6 +54,36 @@ const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   facingMode: "user",
 };
 
+// A camera request can hang forever without answering (seen when a capture
+// device is wedged). Past this, give up on video instead of freezing the
+// call. The permission prompt is part of the wait, so keep it generous.
+const CAMERA_TIMEOUT_MS = 10_000;
+
+class MediaTimeoutError extends Error {}
+
+/** getUserMedia with a time limit. A stream that arrives too late is
+ * stopped, so the camera light doesn't stay on for nothing. */
+function requestMedia(constraints: MediaStreamConstraints): Promise<MediaStream> {
+  return new Promise((resolve, reject) => {
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      reject(new MediaTimeoutError("The camera or microphone didn't respond."));
+    }, CAMERA_TIMEOUT_MS);
+    navigator.mediaDevices.getUserMedia(constraints).then(
+      (stream) => {
+        clearTimeout(timer);
+        if (timedOut) stream.getTracks().forEach((track) => track.stop());
+        else resolve(stream);
+      },
+      (error) => {
+        clearTimeout(timer);
+        if (!timedOut) reject(error);
+      },
+    );
+  });
+}
+
 async function getMedia(): Promise<{ stream: MediaStream; hasVideo: boolean }> {
   if (!navigator.mediaDevices?.getUserMedia) {
     throw new Error(
@@ -61,16 +91,16 @@ async function getMedia(): Promise<{ stream: MediaStream; hasVideo: boolean }> {
     );
   }
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
+    const stream = await requestMedia({
       audio: { echoCancellation: true, noiseSuppression: true },
       video: VIDEO_CONSTRAINTS,
     });
     return { stream, hasVideo: true };
   } catch (videoError) {
-    // No camera, or it's busy (common with two browser windows on one
-    // laptop): fall back to a voice-only call rather than failing.
+    // No camera, it's busy (common with two browser windows on one laptop),
+    // or it doesn't respond: fall back to a voice-only call, don't fail.
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await requestMedia({ audio: true });
       return { stream, hasVideo: false };
     } catch {
       const name = (videoError as DOMException)?.name;
@@ -335,7 +365,7 @@ export function useCall(ticket: CallTicket | null) {
         const stream = streamRef.current;
         if (cancelled || endedRef.current || !stream) return;
         try {
-          const fresh = await navigator.mediaDevices.getUserMedia({ video: VIDEO_CONSTRAINTS });
+          const fresh = await requestMedia({ video: VIDEO_CONSTRAINTS });
           const replacement = fresh.getVideoTracks()[0];
           if (cancelled || endedRef.current || streamRef.current !== stream) {
             replacement.stop();
@@ -352,6 +382,8 @@ export function useCall(ticket: CallTicket | null) {
           setLocalStream(new MediaStream(stream.getTracks()));
           watchCamera(replacement);
         } catch {
+          // No camera to switch to, or it didn't respond: carry on with
+          // voice only, and say so.
           if (cancelled) return;
           setHasVideo(false);
           setCameraOn(false);
