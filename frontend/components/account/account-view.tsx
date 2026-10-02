@@ -235,7 +235,7 @@ export function AccountView() {
                 // Same as Google sign-in: continue where they were going,
                 // unless they still have to choose a role.
                 const signedIn = useAuthStore.getState().me?.user;
-                if (nextParam && signedIn?.role) router.push(next);
+                if (nextParam && (signedIn?.role || signedIn?.is_admin)) router.push(next);
               }}
             />
           )}
@@ -244,7 +244,8 @@ export function AccountView() {
     );
   }
 
-  if (user.role === null || changingRole) {
+  // The admin reviews applications and needs no role of their own.
+  if ((user.role === null && !user.is_admin) || changingRole) {
     return (
       <div className="flex flex-col gap-4">
         <div>
@@ -273,7 +274,7 @@ export function AccountView() {
           {verified && <BadgeCheck aria-label="Verified" className="size-5 text-triage-green" />}
         </CardTitle>
         <CardDescription>
-          {user.email} · {ROLE_LABEL[user.role]}
+          {user.email} · {user.role ? ROLE_LABEL[user.role] : "Admin"}
           {isProfessional(user.role) &&
             (verified
               ? " · Verified"

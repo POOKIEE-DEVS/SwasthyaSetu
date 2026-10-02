@@ -187,3 +187,14 @@ def test_id_token_claims_are_checked(
 )
 def test_next_is_same_site_only(value: str | None, expected: str) -> None:
     assert auth_service.safe_next(value) == expected
+
+
+def test_admin_skips_role_selection(
+    client: TestClient, google: list[dict], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "admin_emails", "sita@example.com")
+    state, _ = start_google(client, "/admin/")
+    back = client.get(
+        f"/api/v1/auth/google/callback?code=c&state={state}", follow_redirects=False
+    )
+    assert back.headers["location"] == "/admin/"

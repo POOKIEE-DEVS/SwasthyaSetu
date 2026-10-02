@@ -114,7 +114,8 @@ def _sign_in(profile: GoogleProfile) -> tuple[str, bool]:
     """Returns (session token, whether the user still has to pick a role)."""
     with Session(get_engine()) as db:
         user = upsert_google_user(db, profile)
-        return create_session(db, user), user.role is None
+        # The admin needs no role to review applications.
+        return create_session(db, user), user.role is None and not is_admin(user)
 
 
 @router.get("/google/callback")
