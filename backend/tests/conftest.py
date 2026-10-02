@@ -82,3 +82,41 @@ def sign_in(client: TestClient, email: str, name: str = "Test User") -> dict:
     )
     assert response.status_code == 200, response.text
     return response.json()
+
+
+DOCTOR_EMAIL = "doctor@example.com"
+DOCTOR_NAME = "Dr. Anita Karki"
+
+
+def make_professional(
+    client: TestClient,
+    email: str = DOCTOR_EMAIL,
+    name: str = DOCTOR_NAME,
+    role: str = "doctor",
+    status: str = "approved",
+) -> dict:
+    """Sign the client in as a professional whose application has `status`.
+    Written straight to the database; the review flow itself is covered in
+    test_verification.py."""
+    from app.models import Application, User
+
+    user = sign_in(client, email, name)
+    with Session(db.get_engine()) as s:
+        row = s.get(User, user["id"])
+        assert row is not None
+        row.role = role
+        s.add(row)
+        s.add(
+            Application(
+                user_id=row.id,
+                role=role,
+                full_name=name,
+                phone="9800000000",
+                citizenship_number="27-01-71-12345",
+                citizenship_district="Kathmandu",
+                council_number="12345",
+                status=status,
+            )
+        )
+        s.commit()
+    return user

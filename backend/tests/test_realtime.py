@@ -5,6 +5,14 @@ from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from app.realtime.websocket import CLOSE_REPLACED, CLOSE_UNAUTHORIZED
+from tests.conftest import DOCTOR_NAME, make_professional
+
+BADGE = {"name": DOCTOR_NAME, "role": "doctor"}
+
+
+@pytest.fixture(autouse=True)
+def verified_doctor(client: TestClient) -> None:
+    make_professional(client)
 
 
 def start_call(client: TestClient) -> tuple[str, str, str]:
@@ -51,14 +59,24 @@ def test_signals_relay_between_patient_and_doctor(client: TestClient) -> None:
         f"/ws/consultations/{cid}?token={patient_token}"
     ) as p:
         joined = p.receive_json()
-        assert joined == {"type": "joined", "role": "patient", "peer_present": False}
+        assert joined == {
+            "type": "joined",
+            "role": "patient",
+            "peer_present": False,
+            "professional": BADGE,
+        }
 
         with client.websocket_connect(
             f"/ws/consultations/{cid}?token={doctor_token}"
         ) as d:
             assert d.receive_json()["peer_present"] is True
             # The one already in the room is told, and makes the offer.
-            assert p.receive_json() == {"type": "peer-joined", "role": "doctor"}
+            # ...and learns who accepted, for the "Verified Doctor" badge.
+            assert p.receive_json() == {
+                "type": "peer-joined",
+                "role": "doctor",
+                "professional": BADGE,
+            }
 
             p.send_json({"type": "offer", "payload": {"sdp": "v=0", "type": "offer"}})
             offer = d.receive_json()

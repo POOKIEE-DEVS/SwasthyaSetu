@@ -20,6 +20,13 @@ class ConsultationCreate(BaseModel):
     summary: str | None = Field(default=None, max_length=6000)
 
 
+class ProfessionalBadge(BaseModel):
+    """Who accepted the call, shown to the patient as "Verified Doctor"."""
+
+    name: str
+    role: Literal["doctor", "pharmacist", "student"]
+
+
 class ConsultationPublic(BaseModel):
     """What the doctor queue sees. Never includes tokens."""
 
@@ -28,6 +35,8 @@ class ConsultationPublic(BaseModel):
     summary: str | None
     status: Literal["waiting", "active", "ended"]
     created_at: float
+    # Set when a verified professional accepts.
+    professional: ProfessionalBadge | None = None
 
 
 class CallTicket(BaseModel):

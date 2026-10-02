@@ -16,7 +16,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Literal
 
-from app.schemas.consultation import ConsultationPublic
+from app.schemas.consultation import ConsultationPublic, ProfessionalBadge
 
 Role = Literal["patient", "doctor"]
 Status = Literal["waiting", "active", "ended"]
@@ -37,6 +37,7 @@ class Consultation:
     summary: str | None
     patient_token: str
     doctor_token: str | None = None
+    professional: ProfessionalBadge | None = None
     status: Status = "waiting"
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
@@ -48,6 +49,7 @@ class Consultation:
             summary=self.summary,
             status=self.status,
             created_at=self.created_at,
+            professional=self.professional,
         )
 
 
@@ -85,11 +87,14 @@ class ConsultationRegistry:
             key=lambda c: c.created_at,
         )
 
-    def accept(self, consultation_id: str) -> Consultation:
+    def accept(
+        self, consultation_id: str, professional: ProfessionalBadge
+    ) -> Consultation:
         consultation = self.get(consultation_id)
         if consultation.status != "waiting":
             raise ConsultationUnavailableError(consultation_id)
         consultation.status = "active"
+        consultation.professional = professional
         consultation.doctor_token = secrets.token_urlsafe(24)
         consultation.updated_at = time.time()
         return consultation

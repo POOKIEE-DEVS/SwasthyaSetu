@@ -1,7 +1,8 @@
 """WebSocket endpoints: the doctor queue and per-consultation call signalling.
 
 ``/ws/doctors``
-    Live list of waiting patients. A fresh snapshot is pushed on connect and
+    Live list of waiting patients, for verified professionals only (checked
+    from the session cookie). A fresh snapshot is pushed on connect and
     after every change.
 
 ``/ws/consultations/{id}?token=...``
@@ -24,11 +25,14 @@ import logging
 
 import anyio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi.concurrency import run_in_threadpool
 from pydantic import ValidationError
 
+from app.api.deps import professional_badge_for_session
 from app.realtime.connection_manager import manager
 from app.schemas.consultation import SignalMessage
 from app.services import consultations
+from app.services.auth import SESSION_COOKIE
 from app.services.consultations import ConsultationNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -39,6 +43,8 @@ DOCTOR_QUEUE_ROOM = "doctors:queue"
 # Close codes the frontend distinguishes. 4000-4999 are application-defined.
 CLOSE_UNAUTHORIZED = 4403
 CLOSE_REPLACED = 4000
+# Not signed in as a verified professional.
+CLOSE_NOT_VERIFIED = 4401
 
 # The socket currently holding each (consultation, role) slot. A reconnect
 # for the same role (a page refresh, or React's dev-mode double mount)
@@ -59,6 +65,12 @@ async def broadcast_queue() -> None:
 
 @router.websocket("/doctors")
 async def doctor_queue(websocket: WebSocket) -> None:
+    badge = await run_in_threadpool(
+        professional_badge_for_session, websocket.cookies.get(SESSION_COOKIE)
+    )
+    if badge is None:
+        await websocket.close(code=CLOSE_NOT_VERIFIED)
+        return
     await manager.connect(DOCTOR_QUEUE_ROOM, websocket)
     try:
         await manager.send(websocket, queue_snapshot())
@@ -95,6 +107,10 @@ async def call_signalling(
         with contextlib.suppress(Exception):  # already gone
             await previous.close(code=CLOSE_REPLACED)
 
+    # Who accepted, so the patient sees "Verified Doctor" and their name.
+    professional = (
+        consultation.professional.model_dump() if consultation.professional else None
+    )
     await manager.connect(room, websocket)
     await manager.send(
         websocket,
@@ -105,10 +121,13 @@ async def call_signalling(
                 (consultation_id, "doctor" if role == "patient" else "patient")
             )
             is not None,
+            "professional": professional,
         },
     )
     await manager.broadcast(
-        room, {"type": "peer-joined", "role": role}, exclude=websocket
+        room,
+        {"type": "peer-joined", "role": role, "professional": professional},
+        exclude=websocket,
     )
 
     try:

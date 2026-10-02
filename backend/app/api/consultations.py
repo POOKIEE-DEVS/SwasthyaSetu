@@ -1,14 +1,15 @@
-"""Patient requests a doctor; a doctor accepts; either ends the call.
+"""Patient requests a doctor; a verified professional accepts; either ends.
 
-The doctor side has no login for the demo, so anyone who opens the doctor
-page can accept. That is fine for a staged demo, and it is the first thing
-to change before real use.
+Patients never need to sign in: an emergency must not wait on a login.
+Seeing the waiting list (which includes shared chats) and accepting a
+patient are for verified doctors, pharmacists and MBBS students only.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
+from app.api.deps import VerifiedProfessional, require_professional
 from app.realtime.ice import get_ice_servers
 from app.realtime.websocket import broadcast_queue
 from app.schemas.consultation import (
@@ -39,14 +40,19 @@ async def request_doctor(body: ConsultationCreate) -> CallTicket:
 
 
 @router.get("", response_model=list[ConsultationPublic])
-async def waiting_patients() -> list[ConsultationPublic]:
+async def waiting_patients(
+    _pro: VerifiedProfessional = Depends(require_professional),
+) -> list[ConsultationPublic]:
     return [c.public() for c in consultations.waiting()]
 
 
 @router.post("/{consultation_id}/accept", response_model=CallTicket)
-async def accept(consultation_id: str) -> CallTicket:
+async def accept(
+    consultation_id: str,
+    pro: VerifiedProfessional = Depends(require_professional),
+) -> CallTicket:
     try:
-        consultation = consultations.accept(consultation_id)
+        consultation = consultations.accept(consultation_id, pro.badge)
     except ConsultationNotFoundError as exc:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, "This request no longer exists."
