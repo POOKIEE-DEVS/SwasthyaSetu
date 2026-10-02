@@ -86,10 +86,17 @@ def list_for(db: Session, user_id: int) -> list[tuple[Chat, int]]:
         .where(ChatEntry.chat_id == Chat.id)
         .scalar_subquery()
     )
+    # Tie-break on the newest message's id (always increasing): two chats
+    # can share a timestamp when the clock is coarse (about 15 ms on Windows).
+    latest_entry = (
+        select(func.max(ChatEntry.id))
+        .where(ChatEntry.chat_id == Chat.id)
+        .scalar_subquery()
+    )
     rows = db.exec(
         select(Chat, count)
         .where(Chat.user_id == user_id)
-        .order_by(col(Chat.updated_at).desc())
+        .order_by(col(Chat.updated_at).desc(), latest_entry.desc())
         .limit(MAX_LISTED)
     ).all()
     return [(chat, n) for chat, n in rows]
