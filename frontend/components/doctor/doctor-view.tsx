@@ -98,7 +98,8 @@ export function DoctorView() {
   }, []);
 
   useEffect(() => {
-    document.title = queue.length > 0 ? `(${queue.length}) Waiting · SwasthyaSetu` : "Doctor · SwasthyaSetu";
+    document.title =
+      queue.length > 0 ? `(${queue.length}) Waiting · SwasthyaSetu` : "Professional · SwasthyaSetu";
   }, [queue.length]);
 
   const goOnline = () => {
@@ -156,7 +157,7 @@ export function DoctorView() {
       <div className="mx-auto w-full max-w-md px-4 py-16">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Volunteer doctor</CardTitle>
+            <CardTitle className="text-xl">Ready to help?</CardTitle>
             <CardDescription>
               Go online to see patients who are waiting and take their video calls.
             </CardDescription>
