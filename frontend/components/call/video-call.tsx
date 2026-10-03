@@ -64,7 +64,7 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
 
   if (call.status === "ended") {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-[20px] border bg-card p-10 text-center shadow-soft">
+      <div className="flex flex-col items-center gap-4 rounded-[12px] border bg-card p-10 text-center shadow-soft">
         <PhoneOff aria-hidden className="size-8 text-muted-foreground" />
         <p className="text-lg font-medium">{call.message ?? "Call ended"}</p>
         <Button onClick={onClose}>Done</Button>
@@ -81,7 +81,7 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative aspect-video w-full overflow-hidden rounded-[20px] bg-[#0e1715] shadow-soft">
+      <div className="relative aspect-video w-full overflow-hidden rounded-[12px] bg-[#121614] shadow-soft">
         <video
           ref={remoteRef}
           autoPlay
@@ -102,7 +102,7 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
             {call.message && <p className="max-w-md text-sm text-white/80">{call.message}</p>}
             {badge && call.status === "connecting" && (
               <p className="flex items-center gap-1.5 text-sm text-white/90">
-                <BadgeCheck aria-hidden className="size-4 text-[#a8d8c7]" />
+                <BadgeCheck aria-hidden className="size-4 text-[#afcbbe]" />
                 {badge} accepted your request
               </p>
             )}
@@ -118,9 +118,9 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
         {peerVisible && (
           <span
             data-testid="peer-label"
-            className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-[#0e1715]/75 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
+            className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-[#121614]/75 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
           >
-            {badge && <BadgeCheck aria-hidden className="size-4 text-[#a8d8c7]" />}
+            {badge && <BadgeCheck aria-hidden className="size-4 text-[#afcbbe]" />}
             {badge ?? peerName}
           </span>
         )}
@@ -142,7 +142,7 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
         )}
 
         {/* Own camera, picture-in-picture. Muted so it never echoes. */}
-        <div className="absolute bottom-3 right-3 aspect-video w-28 overflow-hidden rounded-[14px] border border-white/25 bg-[#15211e] shadow-soft sm:w-44">
+        <div className="absolute bottom-3 right-3 aspect-video w-28 overflow-hidden rounded-[8px] border border-white/25 bg-[#1a201d] shadow-soft sm:w-44">
           <video
             aria-hidden
             ref={localRef}

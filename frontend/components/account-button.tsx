@@ -20,7 +20,7 @@ export function AccountButton() {
     return (
       <Link
         href="/account/"
-        className="flex h-11 items-center gap-1.5 rounded-[12px] border border-input bg-card px-3 text-sm font-semibold transition-colors duration-150 hover:border-primary/60 hover:bg-accent sm:h-9"
+        className="flex h-11 items-center gap-1.5 rounded-[8px] border border-input bg-card px-3 text-sm font-semibold transition-colors duration-150 hover:border-foreground/40 hover:bg-accent sm:h-9"
       >
         <LogIn aria-hidden className="size-4" />
         Sign in

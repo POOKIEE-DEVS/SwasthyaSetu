@@ -91,7 +91,7 @@ export function ChatHistory({ onOpened }: { onOpened: () => void }) {
             type="button"
             onClick={() => open(chat.id)}
             disabled={busyId !== null}
-            className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-[14px] px-2 py-2 text-left transition-colors duration-200 hover:bg-accent"
+            className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-[8px] px-2 py-2 text-left transition-colors duration-200 hover:bg-accent"
           >
             {busyId === chat.id ? (
               <Loader2 aria-hidden className="size-4 shrink-0 animate-spin" />

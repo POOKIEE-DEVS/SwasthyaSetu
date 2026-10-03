@@ -1,28 +1,36 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Manrope, Noto_Sans_Devanagari } from "next/font/google";
+import { Inter, Newsreader, Noto_Sans_Devanagari, Noto_Serif_Devanagari } from "next/font/google";
 
 import { ConnectionStatus } from "@/components/connection-status";
 
 import "./globals.css";
 
-// Headings: Manrope. Text and UI: Inter, highly legible at small sizes.
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-});
-
+// Text, UI and UI headings: Inter, highly legible at small sizes.
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-// Neither has Devanagari glyphs. This keeps Nepali text consistent across
-// devices instead of falling back to whatever the OS has.
+// The large marketing headlines only: an editorial serif, with optical
+// sizes so it tightens up at display sizes.
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  axes: ["opsz"],
+});
+
+// Neither has Devanagari glyphs. These keep Nepali consistent across
+// devices instead of falling back to whatever the OS has: sans for text,
+// serif for the Nepali headlines (only loaded when Nepali is shown).
 const notoDevanagari = Noto_Sans_Devanagari({
   variable: "--font-devanagari",
   subsets: ["devanagari"],
-  weight: ["400", "500", "600", "700"],
+});
+
+const notoSerifDevanagari = Noto_Serif_Devanagari({
+  variable: "--font-serif-devanagari",
+  subsets: ["devanagari"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -46,8 +54,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7faf8" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e1715" },
+    { media: "(prefers-color-scheme: light)", color: "#faf9f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#121614" },
   ],
 };
 
@@ -55,11 +63,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${manrope.variable} ${inter.variable} ${notoDevanagari.variable}`}>
+    <html lang="en" className={`${inter.variable} ${newsreader.variable} ${notoDevanagari.variable} ${notoSerifDevanagari.variable}`}>
       <body className="min-h-dvh font-sans">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-primary-foreground"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-[8px] focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-primary-foreground"
         >
           Skip to content
         </a>

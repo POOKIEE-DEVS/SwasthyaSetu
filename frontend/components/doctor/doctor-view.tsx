@@ -197,7 +197,7 @@ export function DoctorView() {
       )}
 
       {queue.length === 0 ? (
-        <div className="rounded-[20px] border border-dashed p-12 text-center">
+        <div className="rounded-[12px] border border-dashed p-12 text-center">
           <p className="font-semibold">No patients waiting right now.</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Keep this tab open. You&apos;ll hear a tone when someone asks for a doctor.

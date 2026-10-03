@@ -117,7 +117,7 @@ function ApplicationCard({
                   href={url}
                   target="_blank"
                   rel="noreferrer"
-                  className="group flex flex-col gap-1.5 rounded-[14px] border p-2 transition-colors hover:border-foreground/30"
+                  className="group flex flex-col gap-1.5 rounded-[12px] border p-2 transition-colors hover:border-foreground/30"
                 >
                   {isImage ? (
                     // Private, admin-only image served by our API; next/image
@@ -129,7 +129,7 @@ function ApplicationCard({
                       width={400}
                       height={300}
                       loading="lazy"
-                      className="aspect-[4/3] w-full rounded-[10px] bg-muted object-cover"
+                      className="aspect-[4/3] w-full rounded-[8px] bg-muted object-cover"
                     />
                   ) : (
                     <span className="flex aspect-[4/3] w-full items-center justify-center rounded-[10px] bg-muted">
@@ -299,7 +299,7 @@ export function AdminView() {
         </Button>
       </div>
 
-      <div role="tablist" aria-label="Application status" className="flex gap-1 rounded-[12px] bg-muted p-1">
+      <div role="tablist" aria-label="Application status" className="flex gap-1 rounded-[8px] bg-muted p-1">
         {TABS.map(({ status, label }) => (
           <button
             key={status}
@@ -311,7 +311,7 @@ export function AdminView() {
               setTab(status);
             }}
             className={cn(
-              "flex-1 rounded-[10px] px-3 py-2 text-sm font-semibold transition-colors",
+              "flex-1 rounded-[6px] px-3 py-2 text-sm font-semibold transition-colors",
               tab === status ? "bg-card shadow-soft" : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -331,7 +331,7 @@ export function AdminView() {
           <Loader2 aria-hidden className="size-5 animate-spin text-muted-foreground" />
         </div>
       ) : items.length === 0 ? (
-        <p className="rounded-[20px] border border-dashed p-12 text-center text-muted-foreground">
+        <p className="rounded-[12px] border border-dashed p-12 text-center text-muted-foreground">
           {tab === "pending" ? "No applications waiting. All caught up." : "Nothing here yet."}
         </p>
       ) : (
