@@ -9,7 +9,7 @@ export default function PatientPage() {
   return (
     <>
       <SiteHeader role="Patient" />
-      <main>
+      <main id="main">
         <PatientView />
       </main>
     </>

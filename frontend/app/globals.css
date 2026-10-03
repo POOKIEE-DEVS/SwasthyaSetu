@@ -1,92 +1,106 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Dark mode is class-driven rather than media-driven: a user in an emergency
-   at night should be able to force a light screen (or vice versa) regardless
-   of their OS setting. */
-@custom-variant dark (&:is(.dark *));
+/* Follows the device's light or dark setting. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
 /*
-  Two families of colour live here.
+  SwasthyaSetu brand system, taken from the logo.
 
-  The shadcn/ui tokens (background, foreground, primary, ...) style ordinary
-  chrome. The triage tokens (triage-green / -yellow / -red) encode the
-  emergency levels from architecture section 4, and are defined once here so
-  that "red" means exactly one colour everywhere in the product -- a Red-level
-  result must never be rendered in a shade that reads as merely a warning.
+  - Navy (#072849) is the primary: text, primary buttons, focus.
+  - Crimson (#CF141B) is the single accent, and it is also the emergency
+    colour. The brand red and "call 102" are deliberately the same red, so
+    there is exactly one red in the product and it always means "act now".
+  - Neutrals are cool slate, tinted toward the navy.
+
+  Shape system (one rule, used everywhere):
+  buttons and chips are full pills, inputs are 14px, cards and panels 20px.
 */
 :root {
-  --radius: 0.625rem;
+  color-scheme: light;
+  --radius: 0.875rem;
 
-  --background: oklch(0.99 0.004 197);
-  --foreground: oklch(0.21 0.02 250);
+  --brand-navy: #072849;
+  --brand-red: #cf141b;
+
+  --background: oklch(0.985 0.004 255);
+  --foreground: oklch(0.24 0.06 258);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.02 250);
+  --card-foreground: oklch(0.24 0.06 258);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.02 250);
+  --popover-foreground: oklch(0.24 0.06 258);
 
-  /* Calm medical teal: the bridge, not the emergency. */
-  --primary: oklch(0.55 0.11 196);
-  --primary-foreground: oklch(0.99 0.004 197);
+  --primary: var(--brand-navy);
+  --primary-foreground: oklch(0.985 0.004 255);
 
-  --secondary: oklch(0.96 0.008 197);
-  --secondary-foreground: oklch(0.3 0.03 250);
-  --muted: oklch(0.96 0.008 197);
-  --muted-foreground: oklch(0.52 0.02 250);
-  --accent: oklch(0.94 0.02 196);
-  --accent-foreground: oklch(0.3 0.03 250);
+  --secondary: oklch(0.955 0.01 255);
+  --secondary-foreground: oklch(0.3 0.06 258);
+  --muted: oklch(0.955 0.01 255);
+  --muted-foreground: oklch(0.5 0.03 258);
+  --accent: oklch(0.94 0.014 255);
+  --accent-foreground: oklch(0.26 0.06 258);
 
-  --destructive: oklch(0.58 0.22 27);
-  --destructive-foreground: oklch(0.99 0.004 197);
+  --destructive: var(--brand-red);
+  --destructive-foreground: oklch(0.99 0.004 255);
 
-  --border: oklch(0.91 0.008 250);
-  --input: oklch(0.91 0.008 250);
-  --ring: oklch(0.55 0.11 196);
+  --border: oklch(0.9 0.012 255);
+  --input: oklch(0.87 0.014 255);
+  --ring: oklch(0.42 0.1 258);
 
-  /* Emergency levels. */
-  --triage-green: oklch(0.62 0.15 150);
-  --triage-green-foreground: oklch(0.99 0.004 197);
-  --triage-yellow: oklch(0.76 0.15 78);
-  --triage-yellow-foreground: oklch(0.24 0.04 78);
-  --triage-red: oklch(0.55 0.23 27);
-  --triage-red-foreground: oklch(0.99 0.004 197);
+  /* Status colours. Red is the brand red, on purpose (see above). */
+  --triage-green: oklch(0.58 0.13 155);
+  --triage-green-foreground: oklch(0.99 0.004 255);
+  --triage-yellow: oklch(0.76 0.14 78);
+  --triage-yellow-foreground: oklch(0.26 0.05 78);
+  --triage-red: var(--brand-red);
+  --triage-red-foreground: oklch(0.99 0.004 255);
+
+  /* Shadows tinted to the navy, never pure black. */
+  --shadow-soft: 0 1px 2px oklch(0.24 0.06 258 / 0.05),
+    0 12px 32px -16px oklch(0.24 0.06 258 / 0.18);
 }
 
-.dark {
-  --background: oklch(0.17 0.02 250);
-  --foreground: oklch(0.96 0.006 197);
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
 
-  --card: oklch(0.22 0.02 250);
-  --card-foreground: oklch(0.96 0.006 197);
-  --popover: oklch(0.22 0.02 250);
-  --popover-foreground: oklch(0.96 0.006 197);
+    --background: oklch(0.17 0.035 258);
+    --foreground: oklch(0.95 0.008 255);
 
-  --primary: oklch(0.72 0.12 196);
-  --primary-foreground: oklch(0.17 0.02 250);
+    --card: oklch(0.21 0.04 258);
+    --card-foreground: oklch(0.95 0.008 255);
+    --popover: oklch(0.21 0.04 258);
+    --popover-foreground: oklch(0.95 0.008 255);
 
-  --secondary: oklch(0.27 0.02 250);
-  --secondary-foreground: oklch(0.96 0.006 197);
-  --muted: oklch(0.27 0.02 250);
-  --muted-foreground: oklch(0.7 0.02 250);
-  --accent: oklch(0.3 0.03 250);
-  --accent-foreground: oklch(0.96 0.006 197);
+    /* On navy ground the primary inverts to a pale steel with navy text. */
+    --primary: oklch(0.9 0.025 255);
+    --primary-foreground: var(--brand-navy);
 
-  --destructive: oklch(0.66 0.2 25);
-  --destructive-foreground: oklch(0.17 0.02 250);
+    --secondary: oklch(0.26 0.04 258);
+    --secondary-foreground: oklch(0.93 0.01 255);
+    --muted: oklch(0.25 0.04 258);
+    --muted-foreground: oklch(0.72 0.025 255);
+    --accent: oklch(0.28 0.045 258);
+    --accent-foreground: oklch(0.95 0.008 255);
 
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.72 0.12 196);
+    --destructive: oklch(0.64 0.2 25);
+    --destructive-foreground: oklch(0.99 0.004 255);
 
-  /* Lightened so contrast holds on a dark ground; the hues are unchanged,
-     because the meaning of each level must not shift with the theme. */
-  --triage-green: oklch(0.72 0.16 150);
-  --triage-green-foreground: oklch(0.17 0.02 250);
-  --triage-yellow: oklch(0.82 0.15 80);
-  --triage-yellow-foreground: oklch(0.2 0.04 80);
-  --triage-red: oklch(0.66 0.21 27);
-  --triage-red-foreground: oklch(0.17 0.02 250);
+    --border: oklch(1 0 0 / 11%);
+    --input: oklch(1 0 0 / 16%);
+    --ring: oklch(0.8 0.06 255);
+
+    --triage-green: oklch(0.72 0.14 155);
+    --triage-green-foreground: oklch(0.17 0.035 258);
+    --triage-yellow: oklch(0.82 0.14 80);
+    --triage-yellow-foreground: oklch(0.2 0.04 80);
+    /* Lifted slightly for contrast on navy; same hue as the brand red. */
+    --triage-red: oklch(0.6 0.21 26);
+    --triage-red-foreground: oklch(0.99 0.004 255);
+
+    --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -16px oklch(0 0 0 / 0.5);
+  }
 }
 
 @theme inline {
@@ -110,6 +124,9 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-red: var(--brand-red);
+
   --color-triage-green: var(--triage-green);
   --color-triage-green-foreground: var(--triage-green-foreground);
   --color-triage-yellow: var(--triage-yellow);
@@ -117,32 +134,58 @@
   --color-triage-red: var(--triage-red);
   --color-triage-red-foreground: var(--triage-red-foreground);
 
-  --font-sans: var(--font-geist-sans), var(--font-devanagari), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), var(--font-devanagari), ui-sans-serif, system-ui,
+    sans-serif;
   --font-mono: ui-monospace, monospace;
 
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 6px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 6px);
+
+  --shadow-soft: var(--shadow-soft);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01", "cv11";
     /* Respect the notch and the home indicator: the PWA runs fullscreen
        once installed to a phone's home screen. */
     padding: env(safe-area-inset-top) env(safe-area-inset-right)
       env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
-  /* Emergency actions are large targets by design -- they get tapped by
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+
+  /* One visible focus style for every interactive element, including the
+     custom buttons that don't use the Button component. */
+  :where(a, button, [role="tab"], summary, input[type="checkbox"]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Emergency actions are large targets by design: they get tapped by
      someone whose hands are shaking. */
   .tap-target {
     @apply min-h-12 min-w-12;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -153,5 +196,6 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

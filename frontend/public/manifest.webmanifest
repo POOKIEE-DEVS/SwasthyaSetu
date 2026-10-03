@@ -1,14 +1,14 @@
 {
-  "name": "SwasthyaSetu — The bridge to health",
+  "name": "SwasthyaSetu: Bridging Health. Delivering Hope.",
   "short_name": "SwasthyaSetu",
-  "description": "First-aid guidance from an AI assistant and a live video call with a volunteer doctor.",
+  "description": "First-aid guidance in English and Nepali, then a live video call with a verified doctor.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fbfdfd",
-  "theme_color": "#0d7f8c",
+  "background_color": "#f7f8fb",
+  "theme_color": "#072849",
   "lang": "en",
   "dir": "ltr",
   "categories": [
@@ -33,12 +33,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -46,12 +40,12 @@
       "name": "Get help",
       "short_name": "Get help",
       "description": "Chat with the first-aid assistant and call a doctor.",
-      "url": "/patient/"
+      "url": "/"
     },
     {
-      "name": "Doctor",
-      "short_name": "Doctor",
-      "description": "Go online and take patient calls.",
+      "name": "For professionals",
+      "short_name": "Professionals",
+      "description": "Verified professionals go online and take patient calls.",
       "url": "/doctor/"
     }
   ]

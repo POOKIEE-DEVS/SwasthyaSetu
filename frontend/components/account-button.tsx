@@ -20,7 +20,7 @@ export function AccountButton() {
     return (
       <Link
         href="/account/"
-        className="flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium hover:bg-accent"
+        className="flex h-9 items-center gap-1.5 rounded-full border border-input bg-card px-3.5 text-sm font-semibold transition-colors hover:border-foreground/30 hover:bg-accent"
       >
         <LogIn aria-hidden className="size-4" />
         Sign in
@@ -33,7 +33,7 @@ export function AccountButton() {
       href="/account/"
       aria-label={`Account: ${user.name}`}
       title={user.email}
-      className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground"
+      className="flex size-9 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-primary-foreground transition-opacity hover:opacity-90"
     >
       {initials(user.name) || "?"}
     </Link>

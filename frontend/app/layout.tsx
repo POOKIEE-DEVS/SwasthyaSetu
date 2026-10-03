@@ -1,35 +1,37 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Noto_Sans_Devanagari } from "next/font/google";
+import { Noto_Sans_Devanagari, Plus_Jakarta_Sans } from "next/font/google";
 
 import { ConnectionStatus } from "@/components/connection-status";
 
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// A geometric sans close to the logo's wordmark.
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-// Geist has no Devanagari glyphs. This keeps Nepali text consistent across
+// Jakarta has no Devanagari glyphs. This keeps Nepali text consistent across
 // devices instead of falling back to whatever the OS has.
 const notoDevanagari = Noto_Sans_Devanagari({
   variable: "--font-devanagari",
   subsets: ["devanagari"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "SwasthyaSetu",
+    default: "SwasthyaSetu: Bridging Health. Delivering Hope.",
     template: "%s · SwasthyaSetu",
   },
   description:
-    "First-aid guidance from an AI assistant and a live video call with a volunteer doctor.",
+    "First-aid guidance in English and Nepali, then a live video call with a verified doctor.",
   applicationName: "SwasthyaSetu",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
     ],
     apple: "/apple-touch-icon.png",
@@ -38,15 +40,24 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   viewportFit: "cover",
-  themeColor: "#0d7f8c",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f8fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c1a30" },
+  ],
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${notoDevanagari.variable}`}>
+    <html lang="en" className={`${jakarta.variable} ${notoDevanagari.variable}`}>
       <body className="min-h-dvh font-sans">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-primary-foreground"
+        >
+          Skip to content
+        </a>
         <ConnectionStatus />
         {children}
       </body>
