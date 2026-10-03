@@ -69,7 +69,7 @@ export function ProfessionalGate({ children }: { children: React.ReactNode }) {
   if (!user) {
     return (
       <Notice
-        icon={<Stethoscope aria-hidden className="size-5 text-primary" />}
+        icon={<Stethoscope aria-hidden className="size-5 text-primary-text" />}
         title="For medical professionals"
         actions={
           <Button asChild size="lg">
@@ -94,7 +94,7 @@ export function ProfessionalGate({ children }: { children: React.ReactNode }) {
   if (!isProfessional(user.role) || !verification) {
     return (
       <Notice
-        icon={<Stethoscope aria-hidden className="size-5 text-primary" />}
+        icon={<Stethoscope aria-hidden className="size-5 text-primary-text" />}
         title="Get verified to take calls"
         actions={
           <Button asChild size="lg">

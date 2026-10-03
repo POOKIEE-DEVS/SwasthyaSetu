@@ -1,18 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_Devanagari, Plus_Jakarta_Sans } from "next/font/google";
+import { Atkinson_Hyperlegible, Noto_Sans_Devanagari } from "next/font/google";
 
 import { ConnectionStatus } from "@/components/connection-status";
 
 import "./globals.css";
 
-// A geometric sans close to the logo's wordmark.
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+// Designed for low-vision readers: unambiguous letterforms (I/l/1, O/0).
+const atkinson = Atkinson_Hyperlegible({
+  variable: "--font-atkinson",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "700"],
 });
 
-// Jakarta has no Devanagari glyphs. This keeps Nepali text consistent across
+// Atkinson has no Devanagari glyphs. This keeps Nepali text consistent across
 // devices instead of falling back to whatever the OS has.
 const notoDevanagari = Noto_Sans_Devanagari({
   variable: "--font-devanagari",
@@ -41,8 +41,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f8fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c1a30" },
+    { media: "(prefers-color-scheme: light)", color: "#ecfeff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b2530" },
   ],
 };
 
@@ -50,7 +50,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${notoDevanagari.variable}`}>
+    <html lang="en" className={`${atkinson.variable} ${notoDevanagari.variable}`}>
       <body className="min-h-dvh font-sans">
         <a
           href="#main"

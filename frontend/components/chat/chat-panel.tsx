@@ -62,7 +62,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
     >
       <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted shadow-raised-sm">
             <BrandMark className="size-6" />
           </span>
           <div className="min-w-0">
@@ -87,7 +87,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
           {ready && !user && (
             <Link
               href="/account/"
-              className="rounded-full px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="inline-flex min-h-11 items-center rounded-full px-2.5 text-xs font-bold text-muted-foreground transition-colors duration-200 hover:text-primary-text sm:min-h-0 sm:py-1"
             >
               Sign in to save chats
             </Link>
@@ -153,7 +153,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
                     type="button"
                     onClick={() => submit(example)}
                     disabled={pending}
-                    className="rounded-full border bg-background px-3.5 py-1.5 text-left text-sm transition-colors hover:border-foreground/25 hover:bg-accent disabled:opacity-50"
+                    className="min-h-11 rounded-full border bg-card px-4 py-2 text-left text-sm shadow-raised-sm transition-[background-color,box-shadow] duration-200 hover:bg-accent active:shadow-pressed disabled:opacity-50 sm:min-h-0 sm:py-1.5"
                   >
                     {example}
                   </button>
@@ -175,7 +175,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
                 {message.role === "assistant" && (
                   <span
                     aria-hidden
-                    className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary"
+                    className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-muted"
                   >
                     <BrandMark className="size-[18px]" />
                   </span>
@@ -184,8 +184,8 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
                   className={cn(
                     "max-w-[85%] text-[0.95rem] leading-relaxed",
                     message.role === "user"
-                      ? "rounded-[20px] rounded-br-md bg-primary px-4 py-2.5 text-primary-foreground"
-                      : "rounded-[20px] rounded-tl-md bg-secondary px-4 py-3 text-secondary-foreground",
+                      ? "rounded-[20px] rounded-br-md bg-primary px-4 py-2.5 text-primary-foreground shadow-raised-sm"
+                      : "rounded-[20px] rounded-tl-md bg-muted px-4 py-3 text-foreground",
                   )}
                 >
                   <MessageText text={message.content} />
@@ -227,7 +227,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
           submit(draft);
         }}
       >
-        <div className="flex items-center gap-2 rounded-full border border-input bg-background p-1.5 pl-5 transition-colors focus-within:border-ring">
+        <div className="flex items-center gap-2 rounded-full border border-input bg-background p-1.5 pl-5 shadow-pressed transition-colors duration-200 focus-within:border-ring">
           <SmoothInput
             name="message"
             value={draft}
@@ -245,12 +245,12 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
             placeholder="Describe the symptoms… / लक्षण लेख्नुहोस्…"
             aria-label="Message"
             wrapperClassName="flex-1 self-center"
-            className="h-9 text-base"
+            className="h-11 text-base sm:h-9"
           />
           <Button
             type="submit"
             size="icon"
-            className="size-9"
+            className="size-11 sm:size-9"
             disabled={pending || !draft.trim()}
             aria-label="Send"
           >
@@ -260,7 +260,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
       </form>
 
       <div className="px-3 pb-3">
-        <Button variant="outline" className="h-11 w-full" onClick={onTalkToDoctor}>
+        <Button variant="cta" className="h-11 w-full" onClick={onTalkToDoctor}>
           <Stethoscope aria-hidden />
           Talk to a doctor · डाक्टरसँग कुरा गर्नुहोस्
         </Button>

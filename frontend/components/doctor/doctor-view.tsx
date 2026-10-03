@@ -163,7 +163,7 @@ export function DoctorView() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button size="lg" className="w-full" onClick={goOnline}>
+            <Button variant="cta" size="lg" className="w-full" onClick={goOnline}>
               <Power aria-hidden />
               Go online
             </Button>
@@ -177,7 +177,7 @@ export function DoctorView() {
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Waiting patients</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Waiting patients</h1>
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <span
               className={`inline-block size-2 rounded-full ${connected ? "bg-triage-green" : "bg-triage-yellow"}`}
@@ -212,7 +212,7 @@ export function DoctorView() {
                   <div className="flex items-center gap-3">
                     <span
                       aria-hidden
-                      className="flex size-10 items-center justify-center rounded-full bg-secondary text-sm font-bold"
+                      className="flex size-10 items-center justify-center rounded-full bg-muted text-sm font-bold"
                     >
                       {c.patient_name.trim().charAt(0).toUpperCase() || "?"}
                     </span>
@@ -223,7 +223,7 @@ export function DoctorView() {
                       </CardDescription>
                     </div>
                   </div>
-                  <Button onClick={() => accept(c.id)} disabled={acceptingId !== null}>
+                  <Button variant="cta" onClick={() => accept(c.id)} disabled={acceptingId !== null}>
                     {acceptingId === c.id && <Loader2 aria-hidden className="animate-spin" />}
                     Accept
                   </Button>

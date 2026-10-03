@@ -14,13 +14,13 @@ function initials(name: string): string {
 export function AccountButton() {
   const { user, ready } = useAuth();
 
-  if (!ready) return <span className="size-9" aria-hidden />;
+  if (!ready) return <span className="size-11 sm:size-9" aria-hidden />;
 
   if (!user) {
     return (
       <Link
         href="/account/"
-        className="flex h-9 items-center gap-1.5 rounded-full border border-input bg-card px-3.5 text-sm font-semibold transition-colors hover:border-foreground/30 hover:bg-accent"
+        className="flex h-11 items-center gap-1.5 rounded-full border border-input bg-card px-3.5 text-sm font-bold shadow-raised-sm transition-colors duration-200 hover:border-primary/50 hover:bg-accent sm:h-9"
       >
         <LogIn aria-hidden className="size-4" />
         Sign in
@@ -33,7 +33,7 @@ export function AccountButton() {
       href="/account/"
       aria-label={`Account: ${user.name}`}
       title={user.email}
-      className="flex size-9 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-primary-foreground transition-opacity hover:opacity-90"
+      className="flex size-11 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-primary-foreground shadow-raised-sm transition-opacity duration-200 hover:opacity-90 sm:size-9"
     >
       {initials(user.name) || "?"}
     </Link>

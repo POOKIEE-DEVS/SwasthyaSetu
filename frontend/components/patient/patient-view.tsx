@@ -90,7 +90,7 @@ export function PatientView({ renderChat }: Props = {}) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
-              <Stethoscope aria-hidden className="size-5 text-primary" />
+              <Stethoscope aria-hidden className="size-5 text-primary-text" />
               Talk to a verified doctor
             </CardTitle>
             <CardDescription>
@@ -142,7 +142,7 @@ export function PatientView({ renderChat }: Props = {}) {
                 </p>
               )}
 
-              <Button type="submit" size="lg" disabled={submitting || !name.trim()}>
+              <Button type="submit" variant="cta" size="lg" disabled={submitting || !name.trim()}>
                 {submitting && <Loader2 aria-hidden className="animate-spin" />}
                 Request a doctor
               </Button>

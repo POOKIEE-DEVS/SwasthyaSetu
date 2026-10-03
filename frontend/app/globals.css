@@ -5,16 +5,19 @@
 @custom-variant dark (@media (prefers-color-scheme: dark));
 
 /*
-  SwasthyaSetu brand system, taken from the logo.
+  SwasthyaSetu design system (from the ui-ux-pro-max recommendation for a
+  healthcare / telemedicine app):
 
-  - Navy (#072849) is the primary: text, primary buttons, focus.
-  - Crimson (#CF141B) is the single accent, and it is also the emergency
-    colour. The brand red and "call 102" are deliberately the same red, so
-    there is exactly one red in the product and it always means "act now".
-  - Neutrals are cool slate, tinted toward the navy.
-
-  Shape system (one rule, used everywhere):
-  buttons and chips are full pills, inputs are 14px, cards and panels 20px.
+  - Style: soft UI (neumorphism). Surfaces are lifted by a pair of soft
+    shadows (light from the top-left, shade to the bottom-right); inputs
+    are pressed in. Text contrast is kept at 4.5:1 or better and focus is
+    always visible, since soft UI is otherwise low-contrast.
+  - Colour: calm cyan primary (#0891B2), health-green accent for the main
+    actions (#059669), deep teal text. Red (#DC2626) is reserved for
+    emergencies: 102 and the urgent banner. The logo keeps its own navy and
+    crimson.
+  - Type: Atkinson Hyperlegible, designed for low-vision readers.
+  - Shape: buttons and chips are pills, inputs 14px, cards 20px.
 */
 :root {
   color-scheme: light;
@@ -23,83 +26,104 @@
   --brand-navy: #072849;
   --brand-red: #cf141b;
 
-  --background: oklch(0.985 0.004 255);
-  --foreground: oklch(0.24 0.06 258);
+  --background: #ecfeff;
+  --foreground: #164e63;
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.06 258);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.06 258);
+  --card: #ffffff;
+  --card-foreground: #164e63;
+  --popover: #ffffff;
+  --popover-foreground: #164e63;
 
-  --primary: var(--brand-navy);
-  --primary-foreground: oklch(0.985 0.004 255);
+  --primary: #0891b2;
+  --primary-foreground: #000000;
+  /* Cyan as small text needs to be deeper than the button fill to keep
+     4.5:1 on the light background (#0891b2 is only 3.5:1). */
+  --primary-text: #0e7490;
 
-  --secondary: oklch(0.955 0.01 255);
-  --secondary-foreground: oklch(0.3 0.06 258);
-  --muted: oklch(0.955 0.01 255);
-  --muted-foreground: oklch(0.5 0.03 258);
-  --accent: oklch(0.94 0.014 255);
-  --accent-foreground: oklch(0.26 0.06 258);
+  --secondary: #22d3ee;
+  --secondary-foreground: #0f172a;
 
-  --destructive: var(--brand-red);
-  --destructive-foreground: oklch(0.99 0.004 255);
+  /* Health green for the main actions (talk to a doctor, accept). */
+  --cta: #059669;
+  --cta-foreground: #000000;
 
-  --border: oklch(0.9 0.012 255);
-  --input: oklch(0.87 0.014 255);
-  --ring: oklch(0.42 0.1 258);
+  --muted: #e8f1f6;
+  --muted-foreground: #475569;
+  --accent: #dff6fa;
+  --accent-foreground: #164e63;
 
-  /* Status colours. Red is the brand red, on purpose (see above). */
-  --triage-green: oklch(0.58 0.13 155);
-  --triage-green-foreground: oklch(0.99 0.004 255);
-  --triage-yellow: oklch(0.76 0.14 78);
-  --triage-yellow-foreground: oklch(0.26 0.05 78);
-  --triage-red: var(--brand-red);
-  --triage-red-foreground: oklch(0.99 0.004 255);
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
 
-  /* Shadows tinted to the navy, never pure black. */
-  --shadow-soft: 0 1px 2px oklch(0.24 0.06 258 / 0.05),
-    0 12px 32px -16px oklch(0.24 0.06 258 / 0.18);
+  --border: #a5f3fc;
+  --input: #9ad8e6;
+  --ring: #0891b2;
+
+  --triage-green: #059669;
+  --triage-green-foreground: #ffffff;
+  --triage-yellow: #d97706;
+  --triage-yellow-foreground: #0f172a;
+  --triage-red: #dc2626;
+  --triage-red-foreground: #ffffff;
+
+  /* Soft UI: raised and pressed surfaces. */
+  --shadow-raised: -5px -5px 15px rgb(255 255 255 / 0.9),
+    5px 5px 15px rgb(22 78 99 / 0.14);
+  --shadow-raised-sm: -3px -3px 8px rgb(255 255 255 / 0.9),
+    3px 3px 8px rgb(22 78 99 / 0.14);
+  --shadow-pressed: inset 3px 3px 7px rgb(22 78 99 / 0.12),
+    inset -3px -3px 7px rgb(255 255 255 / 0.85);
 }
 
 @media (prefers-color-scheme: dark) {
+  /* The style supports dark mode conditionally: the same palette, deepened,
+     with softer shadows (white highlights don't work on a dark ground). */
   :root {
     color-scheme: dark;
 
-    --background: oklch(0.17 0.035 258);
-    --foreground: oklch(0.95 0.008 255);
+    --background: #0b2530;
+    --foreground: #e0f7fb;
 
-    --card: oklch(0.21 0.04 258);
-    --card-foreground: oklch(0.95 0.008 255);
-    --popover: oklch(0.21 0.04 258);
-    --popover-foreground: oklch(0.95 0.008 255);
+    --card: #10303d;
+    --card-foreground: #e0f7fb;
+    --popover: #10303d;
+    --popover-foreground: #e0f7fb;
 
-    /* On navy ground the primary inverts to a pale steel with navy text. */
-    --primary: oklch(0.9 0.025 255);
-    --primary-foreground: var(--brand-navy);
+    --primary: #22d3ee;
+    --primary-foreground: #0f172a;
+    --primary-text: #22d3ee;
+    --secondary: #0891b2;
+    --secondary-foreground: #ecfeff;
 
-    --secondary: oklch(0.26 0.04 258);
-    --secondary-foreground: oklch(0.93 0.01 255);
-    --muted: oklch(0.25 0.04 258);
-    --muted-foreground: oklch(0.72 0.025 255);
-    --accent: oklch(0.28 0.045 258);
-    --accent-foreground: oklch(0.95 0.008 255);
+    --cta: #34d399;
+    --cta-foreground: #052e1f;
 
-    --destructive: oklch(0.64 0.2 25);
-    --destructive-foreground: oklch(0.99 0.004 255);
+    --muted: #143845;
+    --muted-foreground: #a3c4cf;
+    --accent: #17414f;
+    --accent-foreground: #e0f7fb;
 
-    --border: oklch(1 0 0 / 11%);
-    --input: oklch(1 0 0 / 16%);
-    --ring: oklch(0.8 0.06 255);
+    /* The same red as light mode: white on it stays above 4.5:1. */
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
 
-    --triage-green: oklch(0.72 0.14 155);
-    --triage-green-foreground: oklch(0.17 0.035 258);
-    --triage-yellow: oklch(0.82 0.14 80);
-    --triage-yellow-foreground: oklch(0.2 0.04 80);
-    /* Lifted slightly for contrast on navy; same hue as the brand red. */
-    --triage-red: oklch(0.6 0.21 26);
-    --triage-red-foreground: oklch(0.99 0.004 255);
+    --border: rgb(165 243 252 / 0.16);
+    --input: rgb(165 243 252 / 0.24);
+    --ring: #22d3ee;
 
-    --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -16px oklch(0 0 0 / 0.5);
+    --triage-green: #34d399;
+    --triage-green-foreground: #052e1f;
+    --triage-yellow: #fbbf24;
+    --triage-yellow-foreground: #1c1300;
+    --triage-red: #dc2626;
+    --triage-red-foreground: #ffffff;
+
+    --shadow-raised: -4px -4px 12px rgb(255 255 255 / 0.03),
+      5px 5px 14px rgb(0 0 0 / 0.45);
+    --shadow-raised-sm: -2px -2px 6px rgb(255 255 255 / 0.03),
+      3px 3px 8px rgb(0 0 0 / 0.45);
+    --shadow-pressed: inset 3px 3px 7px rgb(0 0 0 / 0.4),
+      inset -2px -2px 6px rgb(255 255 255 / 0.03);
   }
 }
 
@@ -112,8 +136,11 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-text: var(--primary-text);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -134,7 +161,7 @@
   --color-triage-red: var(--triage-red);
   --color-triage-red-foreground: var(--triage-red-foreground);
 
-  --font-sans: var(--font-jakarta), var(--font-devanagari), ui-sans-serif, system-ui,
+  --font-sans: var(--font-atkinson), var(--font-devanagari), ui-sans-serif, system-ui,
     sans-serif;
   --font-mono: ui-monospace, monospace;
 
@@ -143,7 +170,11 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 6px);
 
-  --shadow-soft: var(--shadow-soft);
+  /* `shadow-soft` (used across the app) is the raised soft-UI surface. */
+  --shadow-soft: var(--shadow-raised);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-raised-sm: var(--shadow-raised-sm);
+  --shadow-pressed: var(--shadow-pressed);
 }
 
 @layer base {
@@ -157,7 +188,6 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "ss01", "cv11";
     /* Respect the notch and the home indicator: the PWA runs fullscreen
        once installed to a phone's home screen. */
     padding: env(safe-area-inset-top) env(safe-area-inset-right)
@@ -168,11 +198,19 @@
   h2,
   h3 {
     text-wrap: balance;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
   }
 
-  /* One visible focus style for every interactive element, including the
-     custom buttons that don't use the Button component. */
+  /* Everything clickable shows the hand cursor (Tailwind v4 resets buttons
+     to the default arrow); disabled controls show "not allowed". */
+  :where(button, [role="button"], [role="tab"], summary, label[for], a[href], select) {
+    cursor: pointer;
+  }
+  :where(button, [role="button"], input, textarea):disabled {
+    cursor: not-allowed;
+  }
+
+  /* One visible focus style for every interactive element. */
   :where(a, button, [role="tab"], summary, input[type="checkbox"]):focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;

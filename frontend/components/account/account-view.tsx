@@ -91,9 +91,9 @@ function RolePicker({ onChosen }: { onChosen: (role: Role) => void }) {
           >
             <span className="flex items-center gap-2 font-semibold">
               {saving === role ? (
-                <Loader2 aria-hidden className="size-5 animate-spin text-primary" />
+                <Loader2 aria-hidden className="size-5 animate-spin text-primary-text" />
               ) : (
-                <Icon aria-hidden className="size-5 text-primary" />
+                <Icon aria-hidden className="size-5 text-primary-text" />
               )}
               {ROLE_LABEL[role]}
             </span>
@@ -201,7 +201,7 @@ export function AccountView() {
           <CardDescription>
             Patients: signing in is optional. It keeps your chats so you can come back to them.
             You can always{" "}
-            <Link href="/" className="text-primary underline-offset-4 hover:underline">
+            <Link href="/" className="text-primary-text underline-offset-4 hover:underline">
               get help without signing in
             </Link>
             .

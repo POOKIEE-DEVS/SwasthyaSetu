@@ -24,7 +24,7 @@ export function SiteHeader({ role }: Props) {
         <nav aria-label="Main" className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/doctor/"
-            className="hidden rounded-full px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline"
+            className="hidden rounded-full px-2 py-1 text-sm font-bold text-muted-foreground transition-colors duration-200 hover:text-primary-text md:inline"
           >
             For medical professionals
           </Link>
@@ -34,7 +34,7 @@ export function SiteHeader({ role }: Props) {
           <a
             href="tel:102"
             aria-label="Call 102 for an ambulance"
-            className="flex h-9 items-center gap-1.5 rounded-full bg-triage-red px-3.5 text-sm font-bold text-triage-red-foreground shadow-soft transition-colors hover:bg-triage-red/90"
+            className="flex h-11 items-center gap-1.5 rounded-full bg-triage-red px-3.5 text-sm font-bold text-triage-red-foreground shadow-raised-sm transition-colors duration-200 hover:bg-triage-red/90 sm:h-9"
           >
             <Phone aria-hidden className="size-4" />
             <span className="hidden sm:inline">Ambulance</span>

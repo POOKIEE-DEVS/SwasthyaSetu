@@ -180,7 +180,7 @@ function ApplicationForm({
               onClick={() => setRole(option)}
               className={cn(
                 "rounded-lg border px-2 py-2.5 text-sm font-medium",
-                role === option ? "border-primary bg-primary/10 text-primary" : "hover:bg-accent",
+                role === option ? "border-primary bg-primary/10 text-primary-text" : "hover:bg-accent",
               )}
             >
               {ROLE_LABEL[option]}
@@ -413,7 +413,7 @@ export function ApplyView() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-semibold">
-          <ShieldCheck aria-hidden className="size-6 text-primary" />
+          <ShieldCheck aria-hidden className="size-6 text-primary-text" />
           Get verified
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">

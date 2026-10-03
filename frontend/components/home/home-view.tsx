@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, MessageCircle, Phone, Stethoscope, Video } from "lucide-react";
 
 import { BrandLockup } from "@/components/brand";
+import { Testimonials } from "@/components/home/testimonials";
 import { PatientView } from "@/components/patient/patient-view";
 import { Button } from "@/components/ui/button";
 
@@ -35,10 +36,10 @@ function Hero({ chat }: { chat: React.ReactNode }) {
   return (
     <section className="mx-auto grid w-full max-w-6xl items-center gap-8 px-4 pb-12 pt-8 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,500px)] lg:gap-12 lg:pb-16 lg:pt-10">
       <div className="flex flex-col items-start gap-5 animate-in fade-in slide-in-from-bottom-3 duration-700">
-        <p className="text-sm font-semibold text-brand-red" lang="ne">
+        <p className="text-sm font-bold text-primary-text" lang="ne">
           स्वास्थ्य सेतु
         </p>
-        <h1 className="text-[2.15rem] font-extrabold leading-[1.06] tracking-tight sm:text-5xl lg:text-[3.35rem]">
+        <h1 className="text-[2.15rem] font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.35rem]">
           First aid now.
           <br />
           A verified doctor next.
@@ -61,12 +62,31 @@ function Hero({ chat }: { chat: React.ReactNode }) {
   );
 }
 
+function Problem() {
+  return (
+    <section aria-labelledby="problem-title" className="border-t bg-muted/60">
+      <div className="mx-auto max-w-4xl px-4 py-20">
+        <h2
+          id="problem-title"
+          className="text-3xl font-bold leading-tight tracking-tight sm:text-[2.6rem]"
+        >
+          When someone gets hurt far from a clinic, families decide what to do alone.
+        </h2>
+        <p className="mt-5 max-w-[60ch] text-lg leading-relaxed text-muted-foreground">
+          Help can be hours away, and the first minutes matter most. People need clear
+          steps in their own language, and a real doctor as soon as possible.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function HowItWorks() {
   return (
-    <section aria-labelledby="how-title" className="border-t bg-card/60">
+    <section aria-labelledby="how-title" className="border-t">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
         <div className="lg:sticky lg:top-28 lg:self-start">
-          <h2 id="how-title" className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+          <h2 id="how-title" className="text-3xl font-bold tracking-tight sm:text-4xl">
             Help in three moves, in your language.
           </h2>
           <p className="mt-4 max-w-[42ch] text-muted-foreground">
@@ -76,7 +96,7 @@ function HowItWorks() {
         <ol className="relative flex flex-col gap-10 before:absolute before:bottom-6 before:left-5 before:top-6 before:w-px before:bg-border">
           {STEPS.map(({ icon: Icon, title, body }) => (
             <li key={title} className="relative flex gap-5">
-              <span className="relative flex size-10 shrink-0 items-center justify-center rounded-full border bg-card text-primary shadow-soft">
+              <span className="relative flex size-11 shrink-0 items-center justify-center rounded-full bg-card text-primary-text shadow-raised-sm">
                 <Icon aria-hidden className="size-[18px]" />
               </span>
               <div className="pt-1.5">
@@ -95,7 +115,7 @@ function WhoAnswers() {
   return (
     <section aria-labelledby="who-title" className="mx-auto max-w-6xl px-4 py-20">
       <div className="grid gap-4 lg:grid-cols-5 lg:grid-rows-3">
-        <div className="relative isolate flex flex-col justify-between gap-10 overflow-hidden rounded-[20px] bg-brand-navy p-8 text-white ring-1 ring-white/10 dark:bg-[oklch(0.3_0.08_258)] lg:col-span-3 lg:row-span-3 lg:p-10">
+        <div className="relative isolate flex flex-col justify-between gap-10 overflow-hidden rounded-[20px] bg-[#164e63] p-8 text-white shadow-raised lg:col-span-3 lg:row-span-3 lg:p-10">
           {/* The logo's ribbon, large and faint, as the tile's texture. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -107,16 +127,16 @@ function WhoAnswers() {
             className="pointer-events-none absolute -bottom-24 -right-20 -z-10 size-80 opacity-[0.12] brightness-[3] grayscale"
           />
           <div>
-            <h2 id="who-title" className="max-w-[16ch] text-3xl font-extrabold tracking-tight sm:text-4xl">
+            <h2 id="who-title" className="max-w-[16ch] text-3xl font-bold tracking-tight sm:text-4xl">
               Every professional is checked by hand.
             </h2>
-            <p className="mt-4 max-w-[46ch] leading-relaxed text-white/75">
+            <p className="mt-4 max-w-[46ch] leading-relaxed text-white/85">
               Before anyone can see a patient, an admin reviews their citizenship and their
               registration. Patients always see who is on the call.
             </p>
           </div>
           <span className="flex w-fit items-center gap-2 rounded-full bg-white/10 px-3.5 py-2 text-sm font-medium ring-1 ring-white/15">
-            <BadgeCheck aria-hidden className="size-4 text-triage-green" />
+            <BadgeCheck aria-hidden className="size-4 text-[#6ee7b7]" />
             Verified Doctor · shown on every call
           </span>
         </div>
@@ -125,8 +145,8 @@ function WhoAnswers() {
             key={who}
             className={
               i === 0
-                ? "rounded-[20px] border border-triage-red/20 bg-triage-red/[0.06] p-6 lg:col-span-2"
-                : "rounded-[20px] border bg-card p-6 shadow-soft lg:col-span-2"
+                ? "rounded-[20px] border border-cta/30 bg-cta/10 p-6 lg:col-span-2"
+                : "rounded-[20px] bg-card p-6 shadow-raised lg:col-span-2"
             }
           >
             <h3 className="font-bold">{who}</h3>
@@ -151,15 +171,15 @@ function Closing() {
           loading="lazy"
           className="size-20 dark:rounded-full dark:bg-[oklch(0.96_0.01_255)] dark:p-2"
         />
-        <p className="text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
+        <p className="text-3xl font-bold leading-[1.1] tracking-tight sm:text-5xl">
           <span className="block">Bridging Health.</span>
-          <span className="block text-brand-red">Delivering Hope.</span>
+          <span className="block text-primary-text">Delivering Hope.</span>
         </p>
         <p className="max-w-[48ch] text-muted-foreground">
           Doctors, pharmacists and MBBS students can volunteer their time once their documents
           are checked.
         </p>
-        <Button asChild variant="outline" size="lg">
+        <Button asChild variant="cta" size="lg">
           <Link href="/doctor/">
             Join as a professional
             <ArrowRight aria-hidden />
@@ -172,7 +192,7 @@ function Closing() {
 
 function Footer() {
   return (
-    <footer className="border-t bg-card/60">
+    <footer className="border-t bg-muted/60">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
         <BrandLockup />
         <p className="max-w-[52ch] text-sm text-muted-foreground">
@@ -198,8 +218,10 @@ export function HomeView() {
       renderChat={(chat) => (
         <>
           <Hero chat={chat} />
+          <Problem />
           <HowItWorks />
           <WhoAnswers />
+          <Testimonials />
           <Closing />
           <Footer />
         </>

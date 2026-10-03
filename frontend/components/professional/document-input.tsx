@@ -95,7 +95,7 @@ export function DocumentInput({ label, hint, value, onChange, required, allowPdf
           />
           <label
             htmlFor={id}
-            className="mt-1.5 inline-flex cursor-pointer rounded-md bg-secondary px-3 py-1.5 text-sm font-medium hover:bg-secondary/80 peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
+            className="mt-1.5 inline-flex min-h-11 cursor-pointer items-center rounded-full bg-card px-4 py-1.5 shadow-raised-sm sm:min-h-0 text-sm font-medium hover:bg-accent peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
           >
             {value ? "Replace" : "Choose file"}
           </label>

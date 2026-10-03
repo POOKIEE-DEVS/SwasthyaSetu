@@ -81,7 +81,7 @@ function ApplicationCard({
       <CardHeader className="gap-1">
         <CardTitle className="flex flex-wrap items-center gap-2">
           {a.full_name}
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium">
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">
             {ROLE_LABEL[a.role]}
           </span>
         </CardTitle>
@@ -287,7 +287,7 @@ export function AdminView() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Verification review</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Verification review</h1>
           <p className="text-sm text-muted-foreground">
             Check each document, look the council number up on the council&apos;s register,
             then approve or reject.

@@ -81,7 +81,7 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative aspect-video w-full overflow-hidden rounded-[20px] bg-[oklch(0.16_0.04_258)] shadow-soft">
+      <div className="relative aspect-video w-full overflow-hidden rounded-[20px] bg-[#0b2530] shadow-soft">
         <video
           ref={remoteRef}
           autoPlay
@@ -118,7 +118,7 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
         {peerVisible && (
           <span
             data-testid="peer-label"
-            className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-[oklch(0.16_0.04_258/0.72)] px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
+            className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-[#0b2530]/75 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
           >
             {badge && <BadgeCheck aria-hidden className="size-4 text-triage-green" />}
             {badge ?? peerName}
@@ -142,7 +142,7 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
         )}
 
         {/* Own camera, picture-in-picture. Muted so it never echoes. */}
-        <div className="absolute bottom-3 right-3 aspect-video w-28 overflow-hidden rounded-[14px] border border-white/25 bg-[oklch(0.22_0.04_258)] shadow-soft sm:w-44">
+        <div className="absolute bottom-3 right-3 aspect-video w-28 overflow-hidden rounded-[14px] border border-white/25 bg-[#10303d] shadow-soft sm:w-44">
           <video
             aria-hidden
             ref={localRef}
