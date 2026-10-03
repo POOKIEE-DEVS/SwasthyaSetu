@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Get help" };
 export default function PatientPage() {
   return (
     <>
-      <SiteHeader role="Patient" />
+      <SiteHeader role="Patient" languageSwitch />
       <main id="main">
         <PatientView />
       </main>

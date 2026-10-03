@@ -3,8 +3,8 @@
  *
  * Each language is written for its readers rather than word for word, and
  * a sentence is shown in one language at a time (the switch is in the
- * header). Product names in the UI (e.g. the "Verified Doctor" badge) stay
- * as they appear in the app.
+ * header). Every claim here describes what the app actually does: no
+ * statistics, testimonials or certifications.
  */
 
 const en = {
@@ -12,84 +12,66 @@ const en = {
     how: "How it works",
     professionals: "Professionals",
     safety: "Safety",
-    talk: "Talk to a professional",
+    getHelp: "Get help",
     language: "Language",
   },
   hero: {
-    titleA: "First aid now.",
-    titleB: "A verified doctor next.",
-    lede: "Tell us what happened in English or नेपाली. Get clear first-aid guidance now, and a verified professional when you need more help.",
-    primary: "Get first-aid guidance",
-    secondary: "Talk to a professional",
-    trust: ["English + नेपाली", "Verified professionals", "Built for Nepal"],
-    emergencyQ: "Life-threatening emergency?",
+    title: ["Help when you're unsure", "what to do next."],
+    lede: "First-aid guidance in English or नेपाली, with verified healthcare professionals when you need more help.",
+    cta: "Get first-aid help",
+    emergencyQ: "Emergency?",
     emergencyCall: "Call 102",
   },
+  why: {
+    lead: "When the nearest clinic is hours away.",
+    title: "Care shouldn't feel far away.",
+    body: "It is late, someone is hurt, and you are not sure what to do. SwasthyaSetu gives you a calm first step in your own language, and a way to reach a real professional.",
+  },
   how: {
-    title: "One connected path to care.",
+    title: ["First aid now.", "A verified doctor next."],
     steps: [
       {
-        title: "Describe what happened",
-        body: "In your own words, in English or नेपाली. No account needed.",
+        title: "Describe",
+        body: "Tell us what happened, in your own words, in English or नेपाली. No account needed.",
       },
       {
-        title: "Get first-aid guidance",
-        body: "Short, practical steps for right now. Anything urgent points to 102 first.",
+        title: "Understand what to do first",
+        body: "Clear first-aid steps for right now, and a clear call to 102 if it sounds life-threatening.",
       },
       {
-        title: "Connect with a professional",
-        body: "A verified doctor, pharmacist or MBBS student joins you on video, with your chat if you choose to share it.",
+        title: "Connect when more help is needed",
+        body: "A verified doctor, pharmacist or MBBS student joins you on a video call.",
       },
     ],
+    cta: "Get first-aid help",
   },
   pros: {
-    title: "Every professional is reviewed before they meet a patient.",
-    body: "Doctors, pharmacists and MBBS students apply with their documents. An administrator checks each application by hand, and patients see who they are talking to on every call.",
-    process: ["Apply with documents", "Checked by hand", "Verified on every call"],
-    badgeCaption: "What the patient sees during the call",
-    requiresTitle: "What each professional provides",
+    title: ["Every professional", "is checked."],
+    body: "An administrator reviews every application by hand before anyone can see a waiting patient. On the call, you see who you are talking to.",
     categories: [
       {
-        who: "Doctors",
-        needs: "Nepal Medical Council (NMC) registration number and certificate",
+        who: "Doctor",
+        needs: "Nepal Medical Council registration and certificate",
       },
       {
-        who: "Pharmacists",
-        needs: "Nepal Pharmacy Council registration number and certificate",
+        who: "Pharmacist",
+        needs: "Nepal Pharmacy Council registration and certificate",
       },
       {
-        who: "MBBS students",
-        needs: "A letter of recommendation from a registered doctor, with that doctor's NMC number",
+        who: "MBBS student",
+        needs: "Recommendation from a registered doctor",
       },
     ],
     everyone: "Everyone also provides their citizenship certificate.",
     apply: "Volunteer as a professional",
   },
-  human: {
-    lines: ["It is late.", "The clinic is far away.", "You do not know what to do next."],
-    answer: "SwasthyaSetu gives you a safe starting point.",
-    safetyTitle: "How we keep it safe",
-    items: [
-      {
-        title: "First aid, not a diagnosis",
-        body: "The assistant tells you what to do now and when to get help. It does not diagnose or prescribe.",
-      },
-      {
-        title: "Emergencies come first",
-        body: "Anything that sounds life-threatening shows 102 straight away, before any AI reply.",
-      },
-      {
-        title: "You decide what to share",
-        body: "Your chat reaches a professional only if you choose to share it.",
-      },
-      {
-        title: "Only verified people answer",
-        body: "Only professionals an administrator has approved can see waiting patients.",
-      },
-    ],
+  safety: {
+    title: "First-aid information, not a diagnosis.",
+    body: "SwasthyaSetu tells you what to do now and when to get help. It does not diagnose, and it does not prescribe. The button to call 102 is always in view, and you decide whether a professional sees your chat.",
   },
   footer: {
     disclaimer: "SwasthyaSetu gives first-aid information, not a medical diagnosis.",
+    forProfessionals: "For professionals",
     account: "Account",
   },
   chat: {
@@ -129,84 +111,66 @@ const ne: Copy = {
     how: "कसरी काम गर्छ",
     professionals: "स्वास्थ्यकर्मी",
     safety: "सुरक्षा",
-    talk: "स्वास्थ्यकर्मीसँग कुरा गर्नुहोस्",
+    getHelp: "सहयोग लिनुहोस्",
     language: "भाषा",
   },
   hero: {
-    titleA: "अहिले प्राथमिक उपचार।",
-    titleB: "त्यसपछि प्रमाणित डाक्टर।",
-    lede: "के भयो, नेपाली वा अंग्रेजीमा लेख्नुहोस्। तुरुन्तै स्पष्ट प्राथमिक उपचारको निर्देशन पाउनुहोस्, र थप सहयोग चाहिएमा प्रमाणित स्वास्थ्यकर्मीसँग जोडिनुहोस्।",
-    primary: "प्राथमिक उपचार निर्देशन पाउनुहोस्",
-    secondary: "स्वास्थ्यकर्मीसँग कुरा गर्नुहोस्",
-    trust: ["नेपाली + English", "प्रमाणित स्वास्थ्यकर्मी", "नेपालका लागि बनाइएको"],
-    emergencyQ: "ज्यान जोखिममा छ?",
+    title: ["के गर्ने भन्ने अलमलमा हुँदा,", "सहयोग यहीँ छ।"],
+    lede: "नेपाली वा अंग्रेजीमा प्राथमिक उपचारको निर्देशन, र थप सहयोग चाहिँदा प्रमाणित स्वास्थ्यकर्मी।",
+    cta: "प्राथमिक उपचार सहयोग लिनुहोस्",
+    emergencyQ: "आपत्काल?",
     emergencyCall: "102 मा फोन गर्नुहोस्",
   },
+  why: {
+    lead: "जब नजिकको स्वास्थ्य संस्था घण्टौं टाढा हुन्छ।",
+    title: "उपचार टाढाको कुरा हुनु हुँदैन।",
+    body: "राति अबेर कोही घाइते हुन्छ, र के गर्ने भन्ने थाहा हुँदैन। स्वास्थ्य सेतुले आफ्नै भाषामा शान्त पहिलो कदम देखाउँछ, र साँच्चैको स्वास्थ्यकर्मीसम्म पुग्ने बाटो दिन्छ।",
+  },
   how: {
-    title: "हेरचाहसम्म पुग्ने एउटै बाटो।",
+    title: ["अहिले प्राथमिक उपचार।", "त्यसपछि प्रमाणित डाक्टर।"],
     steps: [
       {
-        title: "के भयो, बताउनुहोस्",
-        body: "आफ्नै शब्दमा, नेपाली वा अंग्रेजीमा। खाता चाहिँदैन।",
+        title: "बताउनुहोस्",
+        body: "के भयो, आफ्नै शब्दमा, नेपाली वा अंग्रेजीमा लेख्नुहोस्। खाता चाहिँदैन।",
       },
       {
-        title: "प्राथमिक उपचारको निर्देशन पाउनुहोस्",
-        body: "अहिले के गर्ने भन्ने छोटा, व्यावहारिक कदमहरू। जरुरी अवस्थामा सबैभन्दा पहिले 102।",
+        title: "पहिले के गर्ने, बुझ्नुहोस्",
+        body: "अहिलेका लागि प्राथमिक उपचारका स्पष्ट कदम, र ज्यान जोखिमको संकेत भए 102 मा फोन गर्ने स्पष्ट सल्लाह।",
       },
       {
-        title: "स्वास्थ्यकर्मीसँग जोडिनुहोस्",
-        body: "प्रमाणित डाक्टर, फार्मासिस्ट वा MBBS विद्यार्थी भिडियोमा जोडिनुहुन्छ। तपाईंले चाहेमा मात्र च्याट देखाइन्छ।",
+        title: "थप सहयोग चाहिँदा जोडिनुहोस्",
+        body: "प्रमाणित डाक्टर, फार्मासिस्ट वा MBBS विद्यार्थी भिडियो कलमा जोडिनुहुन्छ।",
       },
     ],
+    cta: "प्राथमिक उपचार सहयोग लिनुहोस्",
   },
   pros: {
-    title: "बिरामीसँग भेट्नुअघि हरेक स्वास्थ्यकर्मीको जाँच गरिन्छ।",
-    body: "डाक्टर, फार्मासिस्ट र MBBS विद्यार्थीले आफ्ना कागजातसहित आवेदन दिनुहुन्छ। प्रशासकले हरेक आवेदन आफैं जाँच्नुहुन्छ, र हरेक कलमा बिरामीले आफू कोसँग कुरा गर्दै हुनुहुन्छ भन्ने देख्नुहुन्छ।",
-    process: ["कागजातसहित आवेदन", "हातैले जाँच", "हरेक कलमा प्रमाणित"],
-    badgeCaption: "कलको बेला बिरामीले देख्ने कुरा",
-    requiresTitle: "हरेक स्वास्थ्यकर्मीले पेस गर्ने कागजात",
+    title: ["हरेक स्वास्थ्यकर्मीको", "जाँच हुन्छ।"],
+    body: "कुनै पनि स्वास्थ्यकर्मीले पर्खिरहेका बिरामी देख्नुअघि प्रशासकले हरेक आवेदन आफैं जाँच्नुहुन्छ। कलमा, तपाईं कोसँग कुरा गर्दै हुनुहुन्छ भन्ने देख्नुहुन्छ।",
     categories: [
       {
         who: "डाक्टर",
-        needs: "नेपाल मेडिकल काउन्सिल (NMC) दर्ता नम्बर र प्रमाणपत्र",
+        needs: "नेपाल मेडिकल काउन्सिलको दर्ता र प्रमाणपत्र",
       },
       {
         who: "फार्मासिस्ट",
-        needs: "नेपाल फार्मेसी काउन्सिल दर्ता नम्बर र प्रमाणपत्र",
+        needs: "नेपाल फार्मेसी काउन्सिलको दर्ता र प्रमाणपत्र",
       },
       {
         who: "MBBS विद्यार्थी",
-        needs: "दर्ता भएका डाक्टरको सिफारिस पत्र, ती डाक्टरको NMC नम्बरसहित",
+        needs: "दर्ता भएका डाक्टरको सिफारिस",
       },
     ],
     everyone: "सबैले आफ्नो नागरिकताको प्रमाणपत्र पनि पेस गर्नुहुन्छ।",
     apply: "स्वास्थ्यकर्मीका रूपमा सहयोग गर्नुहोस्",
   },
-  human: {
-    lines: ["राति अबेर भइसक्यो।", "स्वास्थ्य केन्द्र टाढा छ।", "अब के गर्ने, थाहा छैन।"],
-    answer: "स्वास्थ्य सेतुले तपाईंलाई सुरक्षित सुरुआत दिन्छ।",
-    safetyTitle: "हामी कसरी सुरक्षित राख्छौं",
-    items: [
-      {
-        title: "प्राथमिक उपचार, निदान होइन",
-        body: "सहायकले अहिले के गर्ने र कहिले सहयोग लिने भनेर बताउँछ। यसले रोग निदान गर्दैन, औषधि लेख्दैन।",
-      },
-      {
-        title: "आपत्काल सबैभन्दा पहिले",
-        body: "ज्यान जोखिमको संकेत देखिनेबित्तिकै, AI को जवाफ आउनुअघि नै 102 देखाइन्छ।",
-      },
-      {
-        title: "के देखाउने, तपाईं आफैं रोज्नुहुन्छ",
-        body: "तपाईंले रोजेमा मात्र तपाईंको च्याट स्वास्थ्यकर्मीसम्म पुग्छ।",
-      },
-      {
-        title: "प्रमाणित व्यक्तिले मात्र जवाफ दिन्छन्",
-        body: "प्रशासकले स्वीकृत गरेका स्वास्थ्यकर्मीले मात्र पर्खिरहेका बिरामी देख्न सक्नुहुन्छ।",
-      },
-    ],
+  safety: {
+    title: "प्राथमिक उपचारको जानकारी, रोगको निदान होइन।",
+    body: "स्वास्थ्य सेतुले अहिले के गर्ने र कहिले सहयोग लिने भनेर बताउँछ। यसले रोग निदान गर्दैन, औषधि पनि लेख्दैन। 102 मा फोन गर्ने बटन सधैं देखिन्छ, र तपाईंको च्याट स्वास्थ्यकर्मीले हेर्ने कि नहेर्ने, तपाईं आफैं रोज्नुहुन्छ।",
   },
   footer: {
     disclaimer: "स्वास्थ्य सेतुले प्राथमिक उपचारको जानकारी दिन्छ, चिकित्सकीय निदान होइन।",
+    forProfessionals: "स्वास्थ्यकर्मीका लागि",
     account: "खाता",
   },
   chat: {

@@ -305,7 +305,10 @@ def main() -> int:
             )
 
         def patient_chats():
+            # The landing page's main action opens the chat, no sign-in.
             patient.goto(f"{base}/")
+            patient.get_by_role("link", name="Get first-aid help").first.click()
+            patient.wait_for_url(f"{base}/patient/", timeout=15000)
             box = patient.get_by_label("Message")
             box.fill("I burned my hand on the stove")
             box.press("Enter")
@@ -327,7 +330,7 @@ def main() -> int:
             shot(patient, "2-patient-chat")
 
         def request_doctor():
-            # The chat's own button (the hero and header have the same label).
+            # The chat's own button.
             patient.get_by_test_id("talk-to-professional").click()
             patient.get_by_label("Your name · तपाईंको नाम").fill("Smoke Test")
             patient.get_by_role("button", name="Request a doctor").click()
@@ -408,7 +411,8 @@ def main() -> int:
             patient.get_by_role("link", name="Sign in to save chats").click()
             dev_sign_in(patient, f"patient-{run_id}@smoke.test", "Smoke Patient")
             patient.get_by_role("button", name=re.compile(r"^Patient")).click()
-            patient.wait_for_url(f"{base}/", timeout=15000)
+            # Back to the chat the sign-in link came from.
+            patient.wait_for_url(f"{base}/patient/", timeout=15000)
             patient.get_by_role("button", name="My chats").click()
             saved = patient.get_by_role("list", name="Saved chats")
             expect(saved.get_by_text("I burned my hand on the stove")).to_be_visible(

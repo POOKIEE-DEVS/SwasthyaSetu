@@ -8,11 +8,12 @@ help is far away.
 
 **The demo flow:**
 
-1. **Emergency first.** The app opens straight on the first-aid chat, with a
-   102 ambulance button. No sign-up, no menu.
+1. **Emergency first.** The landing page leads with *Get first-aid help*,
+   which opens the first-aid chat with no sign-up, and 102 is always in the
+   header.
 2. A patient describes what's happening, in **English or Nepali**. **MedGemma**
-   replies with first-aid steps. Emergencies immediately show *Call 102* and
-   *Talk to a professional*.
+   replies with first-aid steps. Messages that sound like an emergency are
+   flagged with *Call 102* and *Talk to a professional*.
 3. The patient requests a doctor (still no login) and can share the chat, so
    they don't have to repeat themselves.
 4. A **verified** medical professional, online on another laptop, is alerted,

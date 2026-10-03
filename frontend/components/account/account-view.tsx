@@ -201,7 +201,7 @@ export function AccountView() {
           <CardDescription>
             Patients: signing in is optional. It keeps your chats so you can come back to them.
             You can always{" "}
-            <Link href="/" className="text-primary-text underline-offset-4 hover:underline">
+            <Link href="/patient/" className="text-primary-text underline-offset-4 hover:underline">
               get help without signing in
             </Link>
             .
@@ -288,7 +288,7 @@ export function AccountView() {
       <CardContent className="flex flex-col gap-2">
         {user.role === "patient" && (
           <Button asChild>
-            <Link href="/">Go to chat and your saved chats</Link>
+            <Link href="/patient/">Go to chat and your saved chats</Link>
           </Button>
         )}
         {isProfessional(user.role) && (

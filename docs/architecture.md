@@ -21,7 +21,8 @@ Zustand) built as a **static export**. Installable via the web app manifest.
 
 | Page | Who | What |
 |---|---|---|
-| `/` (and `/patient/`) | Everyone | **Emergency first**: the first-aid chat, 102 button, "Talk to a doctor". No login. Signed-in patients also get "My chats". |
+| `/` | Everyone | Landing page: what SwasthyaSetu is and who answers, in English or नेपाली. **Get first-aid help** opens the chat; 102 is in the hero and the header. No login. |
+| `/patient/` | Everyone | **Emergency first**: the first-aid chat, 102 button, "Talk to a professional". No login. Signed-in patients also get "My chats". |
 | `/account/` | Everyone | Sign in with Google, choose a role (Patient, Doctor, Pharmacist, MBBS Student), sign out |
 | `/apply/` | Professionals | Verification form: identity, council number or recommendation, document photos |
 | `/doctor/` | Verified professionals | Go online → live queue → accept → call. Others see where their application stands |

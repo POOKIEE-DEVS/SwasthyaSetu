@@ -6,6 +6,7 @@ import { AlertTriangle, ArrowUp, History, Phone, RotateCcw, Video } from "lucide
 
 import { BrandMark } from "@/components/brand";
 import { ChatHistory } from "@/components/chat/chat-history";
+import { ExampleExchange } from "@/components/chat/example-exchange";
 import { MessageText } from "@/components/chat/message-text";
 import { Button } from "@/components/ui/button";
 import { SmoothInput } from "@/components/ui/smooth-input";
@@ -18,45 +19,6 @@ type Props = { onTalkToDoctor: () => void; className?: string };
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-}
-
-/**
- * What the assistant does, shown before the first message: a labelled
- * example exchange joined by the Setu line, from the question to first
- * aid to a professional. It is an illustration, never a real reply (no
- * data-role), and disappears as soon as the patient writes.
- */
-function ExamplePreview() {
-  const { t } = useCopy();
-  return (
-    <figure aria-label={t.chat.exampleLabel} className="relative">
-      <figcaption className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-        {t.chat.exampleLabel}
-      </figcaption>
-      <div className="relative flex flex-col gap-3 pl-5">
-        {/* The Setu line linking question, guidance and the professional. */}
-        <span aria-hidden className="absolute bottom-3 left-[5px] top-3 w-px bg-fresh" />
-        <p className="relative ml-auto max-w-[85%] rounded-[16px] rounded-br-[6px] bg-deep px-3.5 py-2.5 text-sm text-deep-foreground">
-          {t.chat.exampleUser}
-        </p>
-        <div className="relative max-w-[92%] rounded-[16px] rounded-tl-[6px] bg-muted px-3.5 py-2.5 text-sm">
-          <span
-            aria-hidden
-            className="absolute -left-[19px] top-3.5 size-[9px] rounded-full border-2 border-card bg-primary"
-          />
-          {t.chat.exampleReply}
-        </div>
-        <p className="relative flex items-start gap-2 text-sm text-muted-foreground">
-          <span
-            aria-hidden
-            className="absolute -left-[19px] top-1.5 size-[9px] rounded-full border-2 border-card bg-fresh"
-          />
-          <Video aria-hidden className="mt-0.5 size-4 shrink-0 text-primary-text" />
-          {t.chat.exampleNext}
-        </p>
-      </div>
-    </figure>
-  );
 }
 
 export function ChatPanel({ onTalkToDoctor, className }: Props) {
@@ -83,10 +45,9 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
 
   return (
     <section
-      id="first-aid"
       aria-label={t.chat.title}
       className={cn(
-        "flex h-full min-h-0 scroll-mt-24 flex-col overflow-hidden rounded-[20px] border bg-card shadow-soft",
+        "flex h-full min-h-0 flex-col overflow-hidden rounded-[12px] border bg-card",
         className,
       )}
     >
@@ -94,7 +55,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
         <div className="flex min-w-0 items-center gap-2.5">
           <BrandMark className="size-8" />
           <div className="min-w-0">
-            <h2 className="truncate text-[15px] font-bold">{t.chat.title}</h2>
+            <h2 className="truncate text-[15px] font-semibold">{t.chat.title}</h2>
             <p className="truncate text-xs text-muted-foreground">{t.chat.subtitle}</p>
           </div>
         </div>
@@ -112,7 +73,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
           )}
           {ready && !user && (
             <Link
-              href="/account/"
+              href="/account/?next=/patient/"
               className="inline-flex min-h-11 max-w-[6.5rem] items-center rounded-[8px] px-2 text-right text-xs font-medium leading-tight text-muted-foreground transition-colors duration-150 hover:text-foreground sm:min-h-0 sm:max-w-none sm:py-1"
             >
               {t.chat.signInToSave}
@@ -141,7 +102,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
           className="flex flex-col gap-3 border-b border-l-4 border-l-triage-red bg-triage-red/[0.06] px-4 py-3 sm:flex-row sm:items-center"
         >
           <p className="flex flex-1 items-start gap-2 text-sm font-semibold">
-            <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0 text-triage-red" />
+            <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0 text-triage-red-text" />
             {t.chat.urgent}
           </p>
           <div className="flex gap-2">
@@ -167,10 +128,10 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
           {messages.length === 0 && (
             <div className="flex flex-col gap-6">
               <div>
-                <p className="font-heading text-lg font-bold tracking-tight">{t.chat.emptyTitle}</p>
+                <p className="font-display text-2xl">{t.chat.emptyTitle}</p>
                 <p className="text-sm text-muted-foreground">{t.chat.emptyBody}</p>
               </div>
-              <ExamplePreview />
+              <ExampleExchange />
               <div>
                 <p className="mb-2 text-xs font-medium text-muted-foreground">{t.chat.tryLabel}</p>
                 <div className="flex flex-wrap gap-2">
@@ -180,7 +141,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
                       type="button"
                       onClick={() => submit(example)}
                       disabled={pending}
-                      className="min-h-11 rounded-[10px] border bg-background px-3 py-2 text-left text-sm transition-colors duration-150 hover:border-primary/50 hover:bg-accent disabled:opacity-50 sm:min-h-0 sm:py-1.5"
+                      className="min-h-11 rounded-[8px] border bg-background px-3 py-2 text-left text-sm transition-colors duration-150 hover:border-foreground/30 hover:bg-accent disabled:opacity-50 sm:min-h-0 sm:py-1.5"
                     >
                       {example}
                     </button>
@@ -205,8 +166,8 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
                   className={cn(
                     "max-w-[85%] text-[0.95rem] leading-relaxed",
                     message.role === "user"
-                      ? "rounded-[16px] rounded-br-[6px] bg-deep px-4 py-2.5 text-deep-foreground"
-                      : "rounded-[16px] rounded-tl-[6px] bg-muted px-4 py-3 text-foreground",
+                      ? "rounded-[12px] rounded-br-[4px] bg-deep px-4 py-2.5 text-deep-foreground"
+                      : "rounded-[12px] rounded-tl-[4px] bg-muted px-4 py-3 text-foreground",
                   )}
                 >
                   <MessageText text={message.content} />
@@ -229,7 +190,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
           {error && !pending && (
             <div
               role="alert"
-              className="mt-4 flex flex-wrap items-center gap-3 rounded-[12px] border border-destructive/30 bg-destructive/[0.05] px-3.5 py-2.5 text-sm"
+              className="mt-4 flex flex-wrap items-center gap-3 rounded-[8px] border border-destructive/30 bg-destructive/[0.05] px-3.5 py-2.5 text-sm"
             >
               <span className="flex-1">{error}</span>
               <Button variant="outline" size="sm" onClick={retry}>
@@ -248,7 +209,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
           submit(draft);
         }}
       >
-        <div className="flex items-center gap-2 rounded-[14px] border border-input bg-background p-1.5 pl-4 transition-colors duration-150 focus-within:border-ring">
+        <div className="flex items-center gap-2 rounded-[10px] border border-input bg-background p-1.5 pl-4 transition-colors duration-150 focus-within:border-ring">
           <SmoothInput
             name="message"
             value={draft}
@@ -271,7 +232,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
           <Button
             type="submit"
             size="icon"
-            className="size-11 rounded-[10px] sm:size-9"
+            className="size-11 rounded-[6px] sm:size-9"
             disabled={pending || !draft.trim()}
             aria-label={t.chat.send}
           >

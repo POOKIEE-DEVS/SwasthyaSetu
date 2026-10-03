@@ -2,8 +2,9 @@ import { HomeView } from "@/components/home/home-view";
 import { SiteHeader } from "@/components/site-header";
 
 /**
- * Emergency first: the first screen is the first-aid chat, with the 102
- * button in the header and the hero. No sign-in, no menu to get through.
+ * The landing page. The first screen leads with getting help: "Get
+ * first-aid help" opens the chat at /patient/ with no sign-in, and 102 is
+ * in the hero and stays in the header as you scroll.
  */
 export default function Home() {
   return (
