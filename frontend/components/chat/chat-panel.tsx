@@ -15,6 +15,7 @@ import { BrandMark } from "@/components/brand";
 import { ChatHistory } from "@/components/chat/chat-history";
 import { MessageText } from "@/components/chat/message-text";
 import { Button } from "@/components/ui/button";
+import { SmoothInput } from "@/components/ui/smooth-input";
 import { useAuth } from "@/lib/store/auth";
 import { useChatStore } from "@/lib/store/chat";
 import { cn } from "@/lib/utils";
@@ -226,23 +227,25 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
           submit(draft);
         }}
       >
-        <div className="flex items-end gap-2 rounded-[20px] border border-input bg-background p-1.5 pl-4 transition-colors focus-within:border-ring">
-          <textarea
+        <div className="flex items-center gap-2 rounded-full border border-input bg-background p-1.5 pl-5 transition-colors focus-within:border-ring">
+          <SmoothInput
             name="message"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+              // Enter while a Nepali (or other) input method is still
+              // composing confirms the word; it must not send the message.
+              if (event.key === "Enter" && event.nativeEvent.isComposing) {
                 event.preventDefault();
-                submit(draft);
               }
             }}
-            rows={1}
             maxLength={2000}
             autoComplete="off"
+            enterKeyHint="send"
             placeholder="Describe the symptoms… / लक्षण लेख्नुहोस्…"
             aria-label="Message"
-            className="max-h-40 min-h-9 flex-1 resize-none bg-transparent py-2 text-base outline-none placeholder:text-muted-foreground"
+            wrapperClassName="flex-1 self-center"
+            className="h-9 text-base"
           />
           <Button
             type="submit"
