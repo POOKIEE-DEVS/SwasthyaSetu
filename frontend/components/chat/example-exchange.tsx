@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { Video } from "lucide-react";
 
 import { BrandMark } from "@/components/brand";
@@ -12,24 +13,31 @@ import { cn } from "@/lib/utils";
  * says it) what can come next. Drawn like the real chat, but labelled as
  * an example and never a real message (no data-role), so it can't be
  * mistaken for, or counted as, a reply.
+ *
+ * `staged` marks the question and the answer as steps 1 and 2 of a
+ * surrounding [data-reveal] group (the landing page reveals them in order).
  */
 export function ExampleExchange({
   showNext = true,
+  staged = false,
   className,
 }: {
   showNext?: boolean;
+  staged?: boolean;
   className?: string;
 }) {
   const { t } = useCopy();
+  const step = (n: number) =>
+    staged ? { "data-reveal-step": "", style: { "--step": n } as CSSProperties } : {};
   return (
     <figure aria-label={t.chat.exampleLabel} className={cn("flex flex-col gap-4", className)}>
       <figcaption className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
         {t.chat.exampleLabel}
       </figcaption>
-      <p className="ml-auto max-w-[85%] rounded-[12px] rounded-br-[4px] bg-deep px-4 py-2.5 text-[15px] leading-relaxed text-deep-foreground">
+      <p {...step(1)} className="ml-auto max-w-[85%] rounded-[12px] rounded-br-[4px] bg-deep px-4 py-2.5 text-[15px] leading-relaxed text-deep-foreground">
         {t.chat.exampleUser}
       </p>
-      <div className="flex max-w-[92%] gap-2.5">
+      <div {...step(2)} className="flex max-w-[92%] gap-2.5">
         <BrandMark className="mt-0.5 size-7" />
         <p className="rounded-[12px] rounded-tl-[4px] bg-muted px-4 py-2.5 text-[15px] leading-relaxed">
           {t.chat.exampleReply}

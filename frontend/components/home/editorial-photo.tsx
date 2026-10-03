@@ -6,22 +6,38 @@ import { cn } from "@/lib/utils";
  * (see lib/photos.ts), development builds show the brief for the photo in
  * its place; production builds render nothing, and the section around it
  * is composed to stand on its own.
+ *
+ * A photo drifts very slightly against the page as it scrolls (desktop
+ * only, StringParallax at 0.12): enough to feel smooth, too little to
+ * notice as an effect. Three layers so nothing fights over a transform:
+ * the frame reveals, the middle layer belongs to StringTune, and the image
+ * is oversized so the drift never shows an edge.
  */
 export function EditorialPhoto({ slot, className }: { slot: PhotoSlot; className?: string }) {
   const { brief, photo } = PHOTO_SLOTS[slot];
 
   if (photo) {
     return (
-      // A static export serves images as they are; next/image adds nothing.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={photo.src}
-        alt={photo.alt}
-        width={photo.width}
-        height={photo.height}
-        loading="lazy"
-        className={cn("w-full rounded-[4px] object-cover", className)}
-      />
+      <div data-reveal className={cn("relative w-full overflow-hidden rounded-[4px]", className)}>
+        {/* "parallax[]": active in the native scroll mode this site uses.
+            StringTune never starts on touch devices, so phones stay still. */}
+        <div
+          className="absolute inset-x-0 -inset-y-[8%]"
+          data-string="parallax[]"
+          data-string-parallax="0.12"
+        >
+          {/* A static export serves images as they are; next/image adds nothing. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photo.src}
+            alt={photo.alt}
+            width={photo.width}
+            height={photo.height}
+            loading="lazy"
+            className="size-full object-cover"
+          />
+        </div>
+      </div>
     );
   }
 

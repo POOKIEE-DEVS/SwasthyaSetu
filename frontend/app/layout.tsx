@@ -63,8 +63,16 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${newsreader.variable} ${notoDevanagari.variable} ${notoSerifDevanagari.variable}`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${newsreader.variable} ${notoDevanagari.variable} ${notoSerifDevanagari.variable}`}
+    >
       <body className="min-h-dvh font-sans">
+        {/* Without JavaScript the landing page's entrance can't happen, so
+            show the hero straight away rather than after its fallback. */}
+        <noscript>
+          <style>{".hero-line,.hero-after,.hero .setu-bridge,.hero-intro-header{animation:none!important}"}</style>
+        </noscript>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-[8px] focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-primary-foreground"
