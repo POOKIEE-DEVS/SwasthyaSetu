@@ -303,12 +303,6 @@
     opacity: 0;
   }
 }
-@keyframes drop-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-}
 /* The Setu bridge draws itself in, left to right. A clip, so the stroke
    keeps a constant width; the negative insets keep the round ends whole. */
 @keyframes setu-reveal {
@@ -325,9 +319,6 @@
    script arrives late), so coming back to the page never replays it.
    The 102 link is never part of it: it is there from the first paint. */
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.hero-intro-done) .hero-intro-header {
-    animation: drop-in 500ms var(--ease-editorial) backwards;
-  }
   /* Phones and tablets: CSS from the first paint, no script needed. */
   html:not(.hero-intro-done) .hero-line {
     --rise: 24px;
@@ -432,9 +423,9 @@
 }
 .journey-stage {
   /* 0 before the path reaches this stage, 1 once it has; eased over 0.14
-     of the journey so nothing snaps. */
+     of the journey so nothing snaps. Text never moves while you read it:
+     only the title's strength and the dot's colour change. */
   --reach: clamp(0, (var(--progress, 1) - var(--at, 0)) / 0.14 + 1, 1);
-  transform: translateY(calc((1 - var(--reach)) * 8px));
 }
 /* Only the title dims while it waits: at 0.55 it keeps 3.7:1, enough for
    text this large. The body text stays at full contrast throughout. */

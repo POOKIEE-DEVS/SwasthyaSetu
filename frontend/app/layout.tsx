@@ -74,7 +74,7 @@ export default function RootLayout({
         {/* Without JavaScript the landing page's entrance can't happen, so
             show the hero straight away rather than after its fallback. */}
         <noscript>
-          <style>{".hero-line,.hero-after,.hero .setu-bridge,.hero-intro-header{animation:none!important}"}</style>
+          <style>{".hero-line,.hero-after,.hero .setu-bridge{animation:none!important}"}</style>
         </noscript>
         <a
           href="#main"

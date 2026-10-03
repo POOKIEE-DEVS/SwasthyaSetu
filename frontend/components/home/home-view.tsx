@@ -185,7 +185,7 @@ function HowItWorks() {
   return (
     <section id="how" aria-labelledby="how-title" className="scroll-mt-16">
       <div className={`${CONTAINER} ${SECTION_Y}`}>
-        <h2 id="how-title" data-reveal className="font-display text-headline">
+        <h2 id="how-title" className="font-display text-headline">
           <Lines lines={t.how.title} />
         </h2>
 
@@ -341,11 +341,7 @@ function Footer() {
   const link =
     "inline-flex min-h-11 items-center text-muted-foreground transition-colors duration-150 hover:text-foreground sm:min-h-0";
   return (
-    <footer
-      data-reveal
-      className={`${CONTAINER} grid gap-8 py-12 lg:grid-cols-12 lg:gap-6`}
-      style={vars({ "--reveal-y": "0px" })}
-    >
+    <footer className={`${CONTAINER} grid gap-8 py-12 lg:grid-cols-12 lg:gap-6`}>
       <div className="lg:col-span-4">
         <BrandLockup />
         <p className="mt-3 text-sm text-muted-foreground" translate="no">

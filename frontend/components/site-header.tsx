@@ -47,7 +47,7 @@ function QuietEmergencyLink() {
 export function SiteHeader({ role, variant = "app", languageSwitch = false }: Props) {
   if (variant === "home") {
     return (
-      <header className="site-header-home hero-intro-header sticky top-0 z-40 border-b bg-background">
+      <header className="site-header-home sticky top-0 z-40 border-b bg-background">
         <HeaderScrollState />
         <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-10 px-4 sm:px-6">
           <Link href="/" aria-label="SwasthyaSetu home" className="rounded-[8px]">
