@@ -12,7 +12,7 @@ help is far away.
    102 ambulance button. No sign-up, no menu.
 2. A patient describes what's happening, in **English or Nepali**. **MedGemma**
    replies with first-aid steps. Emergencies immediately show *Call 102* and
-   *Talk to a doctor*.
+   *Talk to a professional*.
 3. The patient requests a doctor (still no login) and can share the chat, so
    they don't have to repeat themselves.
 4. A **verified** medical professional, online on another laptop, is alerted,

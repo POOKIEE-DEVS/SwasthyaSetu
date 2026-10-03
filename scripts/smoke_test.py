@@ -327,9 +327,8 @@ def main() -> int:
             shot(patient, "2-patient-chat")
 
         def request_doctor():
-            patient.get_by_role(
-                "button", name="Talk to a doctor · डाक्टरसँग कुरा गर्नुहोस्"
-            ).click()
+            # The chat's own button (the hero and header have the same label).
+            patient.get_by_test_id("talk-to-professional").click()
             patient.get_by_label("Your name · तपाईंको नाम").fill("Smoke Test")
             patient.get_by_role("button", name="Request a doctor").click()
             expect(patient.get_by_text("Waiting for a doctor to accept")).to_be_visible(

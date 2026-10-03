@@ -8,7 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 export default function Home() {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader variant="home" />
       <main id="main">
         <HomeView />
       </main>

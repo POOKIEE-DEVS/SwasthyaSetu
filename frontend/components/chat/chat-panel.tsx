@@ -2,29 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  AlertTriangle,
-  ArrowUp,
-  History,
-  Phone,
-  RotateCcw,
-  Stethoscope,
-} from "lucide-react";
+import { AlertTriangle, ArrowUp, History, Phone, RotateCcw, Video } from "lucide-react";
 
 import { BrandMark } from "@/components/brand";
 import { ChatHistory } from "@/components/chat/chat-history";
 import { MessageText } from "@/components/chat/message-text";
 import { Button } from "@/components/ui/button";
 import { SmoothInput } from "@/components/ui/smooth-input";
+import { useCopy } from "@/lib/i18n";
 import { useAuth } from "@/lib/store/auth";
 import { useChatStore } from "@/lib/store/chat";
 import { cn } from "@/lib/utils";
-
-const EXAMPLES = [
-  "I burned my hand while cooking",
-  "मेरो बच्चालाई २ दिनदेखि ज्वरो आएको छ", // My child has had a fever for 2 days
-  "Someone fell and their ankle is swollen",
-];
 
 type Props = { onTalkToDoctor: () => void; className?: string };
 
@@ -32,14 +20,55 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
 
+/**
+ * What the assistant does, shown before the first message: a labelled
+ * example exchange joined by the Setu line, from the question to first
+ * aid to a professional. It is an illustration, never a real reply (no
+ * data-role), and disappears as soon as the patient writes.
+ */
+function ExamplePreview() {
+  const { t } = useCopy();
+  return (
+    <figure aria-label={t.chat.exampleLabel} className="relative">
+      <figcaption className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        {t.chat.exampleLabel}
+      </figcaption>
+      <div className="relative flex flex-col gap-3 pl-5">
+        {/* The Setu line linking question, guidance and the professional. */}
+        <span aria-hidden className="absolute bottom-3 left-[5px] top-3 w-px bg-fresh" />
+        <p className="relative ml-auto max-w-[85%] rounded-[16px] rounded-br-[6px] bg-deep px-3.5 py-2.5 text-sm text-deep-foreground">
+          {t.chat.exampleUser}
+        </p>
+        <div className="relative max-w-[92%] rounded-[16px] rounded-tl-[6px] bg-muted px-3.5 py-2.5 text-sm">
+          <span
+            aria-hidden
+            className="absolute -left-[19px] top-3.5 size-[9px] rounded-full border-2 border-card bg-primary"
+          />
+          {t.chat.exampleReply}
+        </div>
+        <p className="relative flex items-start gap-2 text-sm text-muted-foreground">
+          <span
+            aria-hidden
+            className="absolute -left-[19px] top-1.5 size-[9px] rounded-full border-2 border-card bg-fresh"
+          />
+          <Video aria-hidden className="mt-0.5 size-4 shrink-0 text-primary-text" />
+          {t.chat.exampleNext}
+        </p>
+      </div>
+    </figure>
+  );
+}
+
 export function ChatPanel({ onTalkToDoctor, className }: Props) {
   const { messages, pending, error, urgent, send, retry, reset } = useChatStore();
   const { user, ready } = useAuth();
+  const { t } = useCopy();
   const [showHistory, setShowHistory] = useState(false);
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (messages.length === 0 && !pending) return;
     endRef.current?.scrollIntoView({
       behavior: prefersReducedMotion() ? "auto" : "smooth",
       block: "end",
@@ -54,22 +83,19 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
 
   return (
     <section
-      aria-label="First-aid assistant"
+      id="first-aid"
+      aria-label={t.chat.title}
       className={cn(
-        "flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border bg-card shadow-soft",
+        "flex h-full min-h-0 scroll-mt-24 flex-col overflow-hidden rounded-[20px] border bg-card shadow-soft",
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+      <div className="flex items-center justify-between gap-3 border-b px-4 py-3 sm:px-5">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted shadow-raised-sm">
-            <BrandMark className="size-6" />
-          </span>
+          <BrandMark className="size-8" />
           <div className="min-w-0">
-            <h2 className="truncate text-[15px] font-bold">First-aid assistant</h2>
-            <p className="truncate text-xs text-muted-foreground">
-              English or नेपाली · Not a diagnosis
-            </p>
+            <h2 className="truncate text-[15px] font-bold">{t.chat.title}</h2>
+            <p className="truncate text-xs text-muted-foreground">{t.chat.subtitle}</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -81,15 +107,15 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
               aria-pressed={showHistory}
             >
               <History aria-hidden />
-              My chats
+              {t.chat.myChats}
             </Button>
           )}
           {ready && !user && (
             <Link
               href="/account/"
-              className="inline-flex min-h-11 items-center rounded-full px-2.5 text-xs font-bold text-muted-foreground transition-colors duration-200 hover:text-primary-text sm:min-h-0 sm:py-1"
+              className="inline-flex min-h-11 max-w-[6.5rem] items-center rounded-[8px] px-2 text-right text-xs font-medium leading-tight text-muted-foreground transition-colors duration-150 hover:text-foreground sm:min-h-0 sm:max-w-none sm:py-1"
             >
-              Sign in to save chats
+              {t.chat.signInToSave}
             </Link>
           )}
           {(messages.length > 0 || showHistory) && (
@@ -103,7 +129,7 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
               disabled={pending}
             >
               <RotateCcw aria-hidden />
-              New chat
+              {t.chat.newChat}
             </Button>
           )}
         </div>
@@ -112,21 +138,21 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
       {urgent && (
         <div
           role="alert"
-          className="flex flex-col gap-3 border-b border-l-4 border-l-triage-red bg-triage-red/[0.07] px-4 py-3 sm:flex-row sm:items-center"
+          className="flex flex-col gap-3 border-b border-l-4 border-l-triage-red bg-triage-red/[0.06] px-4 py-3 sm:flex-row sm:items-center"
         >
           <p className="flex flex-1 items-start gap-2 text-sm font-semibold">
             <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0 text-triage-red" />
-            This may be an emergency. Call 102 now, or talk to a doctor immediately.
+            {t.chat.urgent}
           </p>
           <div className="flex gap-2">
             <Button asChild variant="emergency" size="sm">
               <a href="tel:102">
                 <Phone aria-hidden />
-                Call 102
+                {t.chat.call102}
               </a>
             </Button>
             <Button variant="outline" size="sm" onClick={onTalkToDoctor}>
-              Talk to a doctor
+              {t.chat.talk}
             </Button>
           </div>
         </div>
@@ -137,27 +163,29 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
           <ChatHistory onOpened={() => setShowHistory(false)} />
         </div>
       ) : (
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-5">
           {messages.length === 0 && (
-            <div className="flex h-full flex-col justify-center gap-5 py-4">
+            <div className="flex flex-col gap-6">
               <div>
-                <p className="text-lg font-bold tracking-tight">What is happening?</p>
-                <p className="text-sm text-muted-foreground">
-                  Describe it in your own words. के भइरहेको छ, लेख्नुहोस्।
-                </p>
+                <p className="font-heading text-lg font-bold tracking-tight">{t.chat.emptyTitle}</p>
+                <p className="text-sm text-muted-foreground">{t.chat.emptyBody}</p>
               </div>
-              <div className="flex flex-col items-start gap-2">
-                {EXAMPLES.map((example) => (
-                  <button
-                    key={example}
-                    type="button"
-                    onClick={() => submit(example)}
-                    disabled={pending}
-                    className="min-h-11 rounded-full border bg-card px-4 py-2 text-left text-sm shadow-raised-sm transition-[background-color,box-shadow] duration-200 hover:bg-accent active:shadow-pressed disabled:opacity-50 sm:min-h-0 sm:py-1.5"
-                  >
-                    {example}
-                  </button>
-                ))}
+              <ExamplePreview />
+              <div>
+                <p className="mb-2 text-xs font-medium text-muted-foreground">{t.chat.tryLabel}</p>
+                <div className="flex flex-wrap gap-2">
+                  {t.chat.examples.map((example) => (
+                    <button
+                      key={example}
+                      type="button"
+                      onClick={() => submit(example)}
+                      disabled={pending}
+                      className="min-h-11 rounded-[10px] border bg-background px-3 py-2 text-left text-sm transition-colors duration-150 hover:border-primary/50 hover:bg-accent disabled:opacity-50 sm:min-h-0 sm:py-1.5"
+                    >
+                      {example}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -172,20 +200,13 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
                   message.role === "user" ? "justify-end" : "justify-start",
                 )}
               >
-                {message.role === "assistant" && (
-                  <span
-                    aria-hidden
-                    className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-muted"
-                  >
-                    <BrandMark className="size-[18px]" />
-                  </span>
-                )}
+                {message.role === "assistant" && <BrandMark className="mt-0.5 size-7" />}
                 <div
                   className={cn(
                     "max-w-[85%] text-[0.95rem] leading-relaxed",
                     message.role === "user"
-                      ? "rounded-[20px] rounded-br-md bg-primary px-4 py-2.5 text-primary-foreground shadow-raised-sm"
-                      : "rounded-[20px] rounded-tl-md bg-muted px-4 py-3 text-foreground",
+                      ? "rounded-[16px] rounded-br-[6px] bg-deep px-4 py-2.5 text-deep-foreground"
+                      : "rounded-[16px] rounded-tl-[6px] bg-muted px-4 py-3 text-foreground",
                   )}
                 >
                   <MessageText text={message.content} />
@@ -201,18 +222,18 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
                 <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground [animation-delay:150ms]" />
                 <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground [animation-delay:300ms]" />
               </span>
-              Thinking… the first reply can take up to a minute while the model wakes up.
+              {t.chat.thinking}
             </div>
           )}
 
           {error && !pending && (
             <div
               role="alert"
-              className="mt-4 flex flex-wrap items-center gap-3 rounded-[14px] border border-destructive/30 bg-destructive/[0.05] px-3.5 py-2.5 text-sm"
+              className="mt-4 flex flex-wrap items-center gap-3 rounded-[12px] border border-destructive/30 bg-destructive/[0.05] px-3.5 py-2.5 text-sm"
             >
               <span className="flex-1">{error}</span>
               <Button variant="outline" size="sm" onClick={retry}>
-                Try again
+                {t.chat.tryAgain}
               </Button>
             </div>
           )}
@@ -221,13 +242,13 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
       )}
 
       <form
-        className="border-t p-3"
+        className="border-t p-3 sm:px-4"
         onSubmit={(event) => {
           event.preventDefault();
           submit(draft);
         }}
       >
-        <div className="flex items-center gap-2 rounded-full border border-input bg-background p-1.5 pl-5 shadow-pressed transition-colors duration-200 focus-within:border-ring">
+        <div className="flex items-center gap-2 rounded-[14px] border border-input bg-background p-1.5 pl-4 transition-colors duration-150 focus-within:border-ring">
           <SmoothInput
             name="message"
             value={draft}
@@ -242,29 +263,32 @@ export function ChatPanel({ onTalkToDoctor, className }: Props) {
             maxLength={2000}
             autoComplete="off"
             enterKeyHint="send"
-            placeholder="Describe the symptoms… / लक्षण लेख्नुहोस्…"
-            aria-label="Message"
+            placeholder={t.chat.placeholder}
+            aria-label={t.chat.message}
             wrapperClassName="flex-1 self-center"
             className="h-11 text-base sm:h-9"
           />
           <Button
             type="submit"
             size="icon"
-            className="size-11 sm:size-9"
+            className="size-11 rounded-[10px] sm:size-9"
             disabled={pending || !draft.trim()}
-            aria-label="Send"
+            aria-label={t.chat.send}
           >
             <ArrowUp aria-hidden />
           </Button>
         </div>
-      </form>
-
-      <div className="px-3 pb-3">
-        <Button variant="cta" className="h-11 w-full" onClick={onTalkToDoctor}>
-          <Stethoscope aria-hidden />
-          Talk to a doctor · डाक्टरसँग कुरा गर्नुहोस्
+        <Button
+          type="button"
+          variant="outline"
+          data-testid="talk-to-professional"
+          className="mt-2 h-11 w-full"
+          onClick={onTalkToDoctor}
+        >
+          <Video aria-hidden />
+          {t.chat.talk}
         </Button>
-      </div>
+      </form>
     </section>
   );
 }

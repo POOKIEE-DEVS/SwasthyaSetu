@@ -12,8 +12,7 @@ import { api, ApiError } from "@/lib/api";
 import { clearTicket, saveTicket, useTicket } from "@/lib/session";
 import { useAuth } from "@/lib/store/auth";
 import { transcript, useChatStore } from "@/lib/store/chat";
-
-type Stage = "chat" | "request";
+import { usePatientUi } from "@/lib/store/patient-ui";
 
 type Props = {
   /** Wrap the chat (the home page places it inside its hero). Requesting a
@@ -23,7 +22,8 @@ type Props = {
 
 export function PatientView({ renderChat }: Props = {}) {
   const messages = useChatStore((s) => s.messages);
-  const [stage, setStage] = useState<Stage>("chat");
+  const stage = usePatientUi((s) => s.stage);
+  const setStage = usePatientUi((s) => s.setStage);
   // An in-progress call (restored after a refresh) takes over the page.
   const ticket = useTicket("patient");
   const [name, setName] = useState("");
