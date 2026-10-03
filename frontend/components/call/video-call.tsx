@@ -64,7 +64,7 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
 
   if (call.status === "ended") {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-xl border bg-card p-10 text-center">
+      <div className="flex flex-col items-center gap-4 rounded-[20px] border bg-card p-10 text-center shadow-soft">
         <PhoneOff aria-hidden className="size-8 text-muted-foreground" />
         <p className="text-lg font-medium">{call.message ?? "Call ended"}</p>
         <Button onClick={onClose}>Done</Button>
@@ -81,16 +81,20 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-neutral-900">
+      <div className="relative aspect-video w-full overflow-hidden rounded-[20px] bg-[oklch(0.16_0.04_258)] shadow-soft">
         <video
           ref={remoteRef}
           autoPlay
           playsInline
+          aria-label={`Video from ${badge ?? peerName}`}
           className={cn("size-full object-cover", !peerVisible && "invisible")}
         />
 
         {!peerVisible && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-white">
+          <div
+            role="status"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-white"
+          >
             {call.status !== "failed" && <Loader2 aria-hidden className="size-8 animate-spin" />}
             <p className="text-lg font-medium">
               {call.status === "waiting" && !call.message ? waitingText : STATUS_TEXT[call.status]}
@@ -114,7 +118,7 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
         {peerVisible && (
           <span
             data-testid="peer-label"
-            className="absolute left-3 top-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-sm text-white"
+            className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-[oklch(0.16_0.04_258/0.72)] px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm"
           >
             {badge && <BadgeCheck aria-hidden className="size-4 text-triage-green" />}
             {badge ?? peerName}
@@ -138,8 +142,9 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
         )}
 
         {/* Own camera, picture-in-picture. Muted so it never echoes. */}
-        <div className="absolute bottom-3 right-3 aspect-video w-28 overflow-hidden rounded-lg border border-white/30 bg-neutral-800 sm:w-44">
+        <div className="absolute bottom-3 right-3 aspect-video w-28 overflow-hidden rounded-[14px] border border-white/25 bg-[oklch(0.22_0.04_258)] shadow-soft sm:w-44">
           <video
+            aria-hidden
             ref={localRef}
             autoPlay
             playsInline
@@ -157,7 +162,7 @@ export function VideoCall({ ticket, peerName, waitingText, onClose }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <Button
           variant={call.micOn ? "secondary" : "destructive"}
           size="lg"

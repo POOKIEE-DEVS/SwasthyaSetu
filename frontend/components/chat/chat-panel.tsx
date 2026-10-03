@@ -4,17 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
+  ArrowUp,
   History,
-  Loader2,
+  Phone,
   RotateCcw,
-  SendHorizontal,
   Stethoscope,
 } from "lucide-react";
 
+import { BrandMark } from "@/components/brand";
 import { ChatHistory } from "@/components/chat/chat-history";
 import { MessageText } from "@/components/chat/message-text";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/store/auth";
 import { useChatStore } from "@/lib/store/chat";
 import { cn } from "@/lib/utils";
@@ -25,9 +25,13 @@ const EXAMPLES = [
   "Someone fell and their ankle is swollen",
 ];
 
-type Props = { onTalkToDoctor: () => void };
+type Props = { onTalkToDoctor: () => void; className?: string };
 
-export function ChatPanel({ onTalkToDoctor }: Props) {
+function prefersReducedMotion(): boolean {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+}
+
+export function ChatPanel({ onTalkToDoctor, className }: Props) {
   const { messages, pending, error, urgent, send, retry, reset } = useChatStore();
   const { user, ready } = useAuth();
   const [showHistory, setShowHistory] = useState(false);
@@ -35,7 +39,10 @@ export function ChatPanel({ onTalkToDoctor }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    endRef.current?.scrollIntoView({
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+      block: "end",
+    });
   }, [messages.length, pending]);
 
   const submit = async (text: string) => {
@@ -45,13 +52,26 @@ export function ChatPanel({ onTalkToDoctor }: Props) {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col rounded-xl border bg-card">
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <div>
-          <h2 className="font-semibold">First-aid assistant</h2>
-          <p className="text-xs text-muted-foreground">English or नेपाली · Not a diagnosis</p>
+    <section
+      aria-label="First-aid assistant"
+      className={cn(
+        "flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border bg-card shadow-soft",
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary">
+            <BrandMark className="size-6" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="truncate text-[15px] font-bold">First-aid assistant</h2>
+            <p className="truncate text-xs text-muted-foreground">
+              English or नेपाली · Not a diagnosis
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           {user && (
             <Button
               variant={showHistory ? "secondary" : "ghost"}
@@ -66,7 +86,7 @@ export function ChatPanel({ onTalkToDoctor }: Props) {
           {ready && !user && (
             <Link
               href="/account/"
-              className="px-2 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              className="rounded-full px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Sign in to save chats
             </Link>
@@ -91,15 +111,18 @@ export function ChatPanel({ onTalkToDoctor }: Props) {
       {urgent && (
         <div
           role="alert"
-          className="flex flex-col gap-3 border-b bg-triage-red/10 px-4 py-3 sm:flex-row sm:items-center"
+          className="flex flex-col gap-3 border-b border-l-4 border-l-triage-red bg-triage-red/[0.07] px-4 py-3 sm:flex-row sm:items-center"
         >
-          <p className="flex flex-1 items-start gap-2 text-sm font-medium">
+          <p className="flex flex-1 items-start gap-2 text-sm font-semibold">
             <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0 text-triage-red" />
             This may be an emergency. Call 102 now, or talk to a doctor immediately.
           </p>
           <div className="flex gap-2">
             <Button asChild variant="emergency" size="sm">
-              <a href="tel:102">Call 102</a>
+              <a href="tel:102">
+                <Phone aria-hidden />
+                Call 102
+              </a>
             </Button>
             <Button variant="outline" size="sm" onClick={onTalkToDoctor}>
               Talk to a doctor
@@ -113,100 +136,132 @@ export function ChatPanel({ onTalkToDoctor }: Props) {
           <ChatHistory onOpened={() => setShowHistory(false)} />
         </div>
       ) : (
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4" aria-live="polite">
-        {messages.length === 0 && (
-          <div className="flex flex-col gap-3 py-6 text-center">
-            <p className="text-muted-foreground">
-              Describe what is happening, in English or Nepali.
-              <br />
-              <span className="text-sm">के भइरहेको छ, लेख्नुहोस्।</span>
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {EXAMPLES.map((example) => (
-                <button
-                  key={example}
-                  type="button"
-                  onClick={() => submit(example)}
-                  className="rounded-full border px-3 py-1.5 text-sm hover:bg-accent"
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+          {messages.length === 0 && (
+            <div className="flex h-full flex-col justify-center gap-5 py-4">
+              <div>
+                <p className="text-lg font-bold tracking-tight">What is happening?</p>
+                <p className="text-sm text-muted-foreground">
+                  Describe it in your own words. के भइरहेको छ, लेख्नुहोस्।
+                </p>
+              </div>
+              <div className="flex flex-col items-start gap-2">
+                {EXAMPLES.map((example) => (
+                  <button
+                    key={example}
+                    type="button"
+                    onClick={() => submit(example)}
+                    disabled={pending}
+                    className="rounded-full border bg-background px-3.5 py-1.5 text-left text-sm transition-colors hover:border-foreground/25 hover:bg-accent disabled:opacity-50"
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <ol aria-live="polite" aria-label="Conversation" className="flex flex-col gap-4">
+            {messages.map((message, i) => (
+              <li
+                key={`${i}-${message.role}`}
+                data-role={message.role}
+                className={cn(
+                  "flex gap-2.5",
+                  message.role === "user" ? "justify-end" : "justify-start",
+                )}
+              >
+                {message.role === "assistant" && (
+                  <span
+                    aria-hidden
+                    className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary"
+                  >
+                    <BrandMark className="size-[18px]" />
+                  </span>
+                )}
+                <div
+                  className={cn(
+                    "max-w-[85%] text-[0.95rem] leading-relaxed",
+                    message.role === "user"
+                      ? "rounded-[20px] rounded-br-md bg-primary px-4 py-2.5 text-primary-foreground"
+                      : "rounded-[20px] rounded-tl-md bg-secondary px-4 py-3 text-secondary-foreground",
+                  )}
                 >
-                  {example}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+                  <MessageText text={message.content} />
+                </div>
+              </li>
+            ))}
+          </ol>
 
-        {messages.map((message, i) => (
-          <div
-            key={i}
-            data-role={message.role}
-            className={cn("flex", message.role === "user" ? "justify-end" : "justify-start")}
-          >
+          {pending && (
+            <div role="status" className="mt-4 flex items-center gap-2.5 text-sm text-muted-foreground">
+              <span aria-hidden className="flex gap-1">
+                <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground" />
+                <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground [animation-delay:150ms]" />
+                <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground [animation-delay:300ms]" />
+              </span>
+              Thinking… the first reply can take up to a minute while the model wakes up.
+            </div>
+          )}
+
+          {error && !pending && (
             <div
-              className={cn(
-                "max-w-[85%] rounded-2xl px-4 py-2.5 text-[0.95rem]",
-                message.role === "user"
-                  ? "rounded-br-sm bg-primary text-primary-foreground"
-                  : "rounded-bl-sm bg-secondary text-secondary-foreground",
-              )}
+              role="alert"
+              className="mt-4 flex flex-wrap items-center gap-3 rounded-[14px] border border-destructive/30 bg-destructive/[0.05] px-3.5 py-2.5 text-sm"
             >
-              <MessageText text={message.content} />
+              <span className="flex-1">{error}</span>
+              <Button variant="outline" size="sm" onClick={retry}>
+                Try again
+              </Button>
             </div>
-          </div>
-        ))}
-
-        {pending && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 aria-hidden className="size-4 animate-spin" />
-            Thinking… the first reply can take up to a minute while the model wakes up.
-          </div>
-        )}
-
-        {error && !pending && (
-          <div role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm">
-            <span className="flex-1">{error}</span>
-            <Button variant="outline" size="sm" onClick={retry}>
-              Try again
-            </Button>
-          </div>
-        )}
-        <div ref={endRef} />
-      </div>
+          )}
+          <div ref={endRef} />
+        </div>
       )}
 
       <form
-        className="flex items-end gap-2 border-t p-3"
+        className="border-t p-3"
         onSubmit={(event) => {
           event.preventDefault();
           submit(draft);
         }}
       >
-        <Textarea
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-              event.preventDefault();
-              submit(draft);
-            }
-          }}
-          rows={1}
-          maxLength={2000}
-          placeholder="Describe the symptoms… / लक्षण लेख्नुहोस्…"
-          aria-label="Message"
-          className="max-h-40"
-        />
-        <Button type="submit" size="icon" disabled={pending || !draft.trim()} aria-label="Send">
-          <SendHorizontal aria-hidden />
-        </Button>
+        <div className="flex items-end gap-2 rounded-[20px] border border-input bg-background p-1.5 pl-4 transition-colors focus-within:border-ring">
+          <textarea
+            name="message"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                submit(draft);
+              }
+            }}
+            rows={1}
+            maxLength={2000}
+            autoComplete="off"
+            placeholder="Describe the symptoms… / लक्षण लेख्नुहोस्…"
+            aria-label="Message"
+            className="max-h-40 min-h-9 flex-1 resize-none bg-transparent py-2 text-base outline-none placeholder:text-muted-foreground"
+          />
+          <Button
+            type="submit"
+            size="icon"
+            className="size-9"
+            disabled={pending || !draft.trim()}
+            aria-label="Send"
+          >
+            <ArrowUp aria-hidden />
+          </Button>
+        </div>
       </form>
 
-      <div className="border-t px-3 py-2">
-        <Button variant="outline" className="w-full" onClick={onTalkToDoctor}>
+      <div className="px-3 pb-3">
+        <Button variant="outline" className="h-11 w-full" onClick={onTalkToDoctor}>
           <Stethoscope aria-hidden />
           Talk to a doctor · डाक्टरसँग कुरा गर्नुहोस्
         </Button>
       </div>
-    </div>
+    </section>
   );
 }

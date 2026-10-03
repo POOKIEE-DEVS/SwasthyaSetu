@@ -117,7 +117,7 @@ function ApplicationCard({
                   href={url}
                   target="_blank"
                   rel="noreferrer"
-                  className="group flex flex-col gap-1.5 rounded-lg border p-2 hover:border-primary"
+                  className="group flex flex-col gap-1.5 rounded-[14px] border p-2 transition-colors hover:border-foreground/30"
                 >
                   {isImage ? (
                     // Private, admin-only image served by our API; next/image
@@ -126,10 +126,13 @@ function ApplicationCard({
                     <img
                       src={url}
                       alt={DOCUMENT_LABEL[doc.kind]}
-                      className="aspect-[4/3] w-full rounded bg-muted object-cover"
+                      width={400}
+                      height={300}
+                      loading="lazy"
+                      className="aspect-[4/3] w-full rounded-[10px] bg-muted object-cover"
                     />
                   ) : (
-                    <span className="flex aspect-[4/3] w-full items-center justify-center rounded bg-muted">
+                    <span className="flex aspect-[4/3] w-full items-center justify-center rounded-[10px] bg-muted">
                       <FileText aria-hidden className="size-8 text-muted-foreground" />
                     </span>
                   )}
@@ -147,7 +150,8 @@ function ApplicationCard({
           <ol className="flex flex-col gap-1 border-l pl-3 text-xs text-muted-foreground">
             {a.history.map((event, i) => (
               <li key={i}>
-                {when(event.at)}: <span className="font-medium">{event.action}</span> by{" "}
+                {when(event.at)}:{" "}
+                <span className="font-medium capitalize">{event.action}</span> by{" "}
                 {event.actor_email}
                 {event.reason && <> · &ldquo;{event.reason}&rdquo;</>}
               </li>
@@ -283,7 +287,7 @@ export function AdminView() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Verification review</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">Verification review</h1>
           <p className="text-sm text-muted-foreground">
             Check each document, look the council number up on the council&apos;s register,
             then approve or reject.
@@ -295,7 +299,7 @@ export function AdminView() {
         </Button>
       </div>
 
-      <div role="tablist" className="flex gap-1 rounded-lg bg-muted p-1">
+      <div role="tablist" aria-label="Application status" className="flex gap-1 rounded-full bg-muted p-1">
         {TABS.map(({ status, label }) => (
           <button
             key={status}
@@ -307,8 +311,8 @@ export function AdminView() {
               setTab(status);
             }}
             className={cn(
-              "flex-1 rounded-md px-3 py-1.5 text-sm font-medium",
-              tab === status ? "bg-background shadow-sm" : "text-muted-foreground",
+              "flex-1 rounded-full px-3 py-2 text-sm font-semibold transition-colors",
+              tab === status ? "bg-card shadow-soft" : "text-muted-foreground hover:text-foreground",
             )}
           >
             {label}
@@ -327,7 +331,7 @@ export function AdminView() {
           <Loader2 aria-hidden className="size-5 animate-spin text-muted-foreground" />
         </div>
       ) : items.length === 0 ? (
-        <p className="rounded-xl border border-dashed p-10 text-center text-muted-foreground">
+        <p className="rounded-[20px] border border-dashed p-12 text-center text-muted-foreground">
           {tab === "pending" ? "No applications waiting. All caught up." : "Nothing here yet."}
         </p>
       ) : (

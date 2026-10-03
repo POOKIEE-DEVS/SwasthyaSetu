@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Power, UserRound } from "lucide-react";
+import { Loader2, Power } from "lucide-react";
 
 import { VideoCall } from "@/components/call/video-call";
 import { MessageText } from "@/components/chat/message-text";
@@ -177,7 +177,7 @@ export function DoctorView() {
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Waiting patients</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">Waiting patients</h1>
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <span
               className={`inline-block size-2 rounded-full ${connected ? "bg-triage-green" : "bg-triage-yellow"}`}
@@ -197,20 +197,30 @@ export function DoctorView() {
       )}
 
       {queue.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-10 text-center text-muted-foreground">
-          No patients waiting right now.
+        <div className="rounded-[20px] border border-dashed p-12 text-center">
+          <p className="font-semibold">No patients waiting right now.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Keep this tab open. You&apos;ll hear a tone when someone asks for a doctor.
+          </p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul aria-live="polite" aria-label="Waiting patients" className="flex flex-col gap-3">
           {queue.map((c) => (
             <li key={c.id}>
               <Card>
                 <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
                   <div className="flex items-center gap-3">
-                    <UserRound aria-hidden className="size-8 rounded-full bg-secondary p-1.5" />
+                    <span
+                      aria-hidden
+                      className="flex size-10 items-center justify-center rounded-full bg-secondary text-sm font-bold"
+                    >
+                      {c.patient_name.trim().charAt(0).toUpperCase() || "?"}
+                    </span>
                     <div>
                       <CardTitle>{c.patient_name}</CardTitle>
-                      <CardDescription>Waiting {waitedFor(c.created_at, now)}</CardDescription>
+                      <CardDescription className="tabular">
+                        Waiting {waitedFor(c.created_at, now)}
+                      </CardDescription>
                     </div>
                   </div>
                   <Button onClick={() => accept(c.id)} disabled={acceptingId !== null}>

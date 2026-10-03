@@ -45,7 +45,8 @@ export function ChatHistory({ onOpened }: { onOpened: () => void }) {
     }
   };
 
-  const remove = async (id: string) => {
+  const remove = async (id: string, title: string) => {
+    if (!window.confirm(`Delete "${title}"? This can't be undone.`)) return;
     setBusyId(id);
     try {
       await api.chats.remove(id);
@@ -104,8 +105,9 @@ export function ChatHistory({ onOpened }: { onOpened: () => void }) {
                   <span className="ml-2 text-xs font-normal text-primary">(open)</span>
                 )}
               </span>
-              <span className="block text-xs text-muted-foreground">
-                {when(chat.updated_at)} · {chat.message_count} messages
+              <span className="tabular block text-xs text-muted-foreground">
+                {when(chat.updated_at)} · {chat.message_count}{" "}
+                {chat.message_count === 1 ? "message" : "messages"}
               </span>
             </span>
           </button>
@@ -114,7 +116,7 @@ export function ChatHistory({ onOpened }: { onOpened: () => void }) {
             size="icon"
             aria-label={`Delete chat: ${chat.title}`}
             disabled={busyId !== null}
-            onClick={() => remove(chat.id)}
+            onClick={() => remove(chat.id, chat.title)}
           >
             <Trash2 aria-hidden className="size-4" />
           </Button>

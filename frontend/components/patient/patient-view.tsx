@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ArrowLeft, Loader2, Stethoscope } from "lucide-react";
 
 import { VideoCall } from "@/components/call/video-call";
@@ -15,7 +15,13 @@ import { transcript, useChatStore } from "@/lib/store/chat";
 
 type Stage = "chat" | "request";
 
-export function PatientView() {
+type Props = {
+  /** Wrap the chat (the home page places it inside its hero). Requesting a
+   * doctor and the call itself always take over the page. */
+  renderChat?: (chat: ReactNode, talkToDoctor: () => void) => ReactNode;
+};
+
+export function PatientView({ renderChat }: Props = {}) {
   const messages = useChatStore((s) => s.messages);
   const [stage, setStage] = useState<Stage>("chat");
   // An in-progress call (restored after a refresh) takes over the page.
@@ -85,10 +91,11 @@ export function PatientView() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
               <Stethoscope aria-hidden className="size-5 text-primary" />
-              Talk to a volunteer doctor
+              Talk to a verified doctor
             </CardTitle>
             <CardDescription>
-              A doctor will join a video call with you. Keep this page open.
+              A verified doctor, pharmacist or MBBS student will join a video call with
+              you. Keep this page open.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -102,6 +109,7 @@ export function PatientView() {
               <label className="flex flex-col gap-1.5 text-sm font-medium">
                 Your name · तपाईंको नाम
                 <Input
+                  name="name"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   maxLength={60}
@@ -149,9 +157,12 @@ export function PatientView() {
     );
   }
 
+  const talkToDoctor = () => setStage("request");
+  if (renderChat) return <>{renderChat(<ChatPanel onTalkToDoctor={talkToDoctor} />, talkToDoctor)}</>;
+
   return (
-    <div className="mx-auto flex h-[calc(100dvh-3.5rem)] w-full max-w-3xl flex-col px-4 py-4">
-      <ChatPanel onTalkToDoctor={() => setStage("request")} />
+    <div className="mx-auto flex h-[calc(100dvh-4rem)] w-full max-w-3xl flex-col px-4 py-4">
+      <ChatPanel onTalkToDoctor={talkToDoctor} />
     </div>
   );
 }
