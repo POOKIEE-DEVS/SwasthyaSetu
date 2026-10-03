@@ -5,125 +5,119 @@
 @custom-variant dark (@media (prefers-color-scheme: dark));
 
 /*
-  SwasthyaSetu design system (from the ui-ux-pro-max recommendation for a
-  healthcare / telemedicine app):
+  SwasthyaSetu design tokens.
 
-  - Style: soft UI (neumorphism). Surfaces are lifted by a pair of soft
-    shadows (light from the top-left, shade to the bottom-right); inputs
-    are pressed in. Text contrast is kept at 4.5:1 or better and focus is
-    always visible, since soft UI is otherwise low-contrast.
-  - Colour: calm cyan primary (#0891B2), health-green accent for the main
-    actions (#059669), deep teal text. Red (#DC2626) is reserved for
-    emergencies: 102 and the urgent banner. The logo keeps its own navy and
-    crimson.
-  - Type: Atkinson Hyperlegible, designed for low-vision readers.
-  - Shape: buttons and chips are pills, inputs 14px, cards 20px.
+  Concept: "Setu" is a bridge. One thin continuous line connects the parts
+  of the journey (describe, get guidance, reach a professional); colour is
+  used sparingly on generous neutral space.
+
+  Colour
+  - Neutral page (#F7FAF8) and white surfaces carry most of the page.
+  - Health teal (#0B695E) is the primary action and link colour; deep teal
+    (#123D3A) is for the few dark bands; soft green (#DCEFE8) and fresh
+    accent (#A8D8C7) are quiet tints and the Setu line.
+  - Emergency red is ONLY for urgent states (102, the urgent banner).
+    Adjusted from #D63B3B to #C53030 so it passes WCAG AA as text (5.2:1).
+  - Secondary text adjusted from #65736F to #5E6C68 so it also passes on
+    the soft green tint (4.6:1).
+
+  Shape: 20px radius for major surfaces only, 12px for controls, 8px for
+  small elements. Hairline borders; one extremely soft shadow.
 */
 :root {
   color-scheme: light;
-  --radius: 0.875rem;
 
-  --brand-navy: #072849;
-  --brand-red: #cf141b;
-
-  --background: #ecfeff;
-  --foreground: #164e63;
-
+  /* Colour */
+  --background: #f7faf8;
+  --foreground: #15211e;
   --card: #ffffff;
-  --card-foreground: #164e63;
+  --card-foreground: #15211e;
   --popover: #ffffff;
-  --popover-foreground: #164e63;
+  --popover-foreground: #15211e;
 
-  --primary: #0891b2;
-  --primary-foreground: #000000;
-  /* Cyan as small text needs to be deeper than the button fill to keep
-     4.5:1 on the light background (#0891b2 is only 3.5:1). */
-  --primary-text: #0e7490;
+  --primary: #0b695e;
+  --primary-foreground: #ffffff;
+  --primary-text: #0b695e;
+  --deep: #123d3a;
+  --deep-foreground: #f7faf8;
+  --soft: #dcefe8;
+  --fresh: #a8d8c7;
 
-  --secondary: #22d3ee;
-  --secondary-foreground: #0f172a;
+  --secondary: #eef5f2;
+  --secondary-foreground: #15211e;
+  --muted: #eef5f2;
+  --muted-foreground: #5e6c68;
+  --accent: #e6f2ed;
+  --accent-foreground: #123d3a;
 
-  /* Health green for the main actions (talk to a doctor, accept). */
-  --cta: #059669;
-  --cta-foreground: #000000;
-
-  --muted: #e8f1f6;
-  --muted-foreground: #475569;
-  --accent: #dff6fa;
-  --accent-foreground: #164e63;
-
-  --destructive: #dc2626;
+  --destructive: #c53030;
   --destructive-foreground: #ffffff;
 
-  --border: #a5f3fc;
-  --input: #9ad8e6;
-  --ring: #0891b2;
+  --border: #e0e8e4;
+  --input: #cad7d2;
+  --ring: #0b695e;
 
-  --triage-green: #059669;
+  --triage-green: #0b695e;
   --triage-green-foreground: #ffffff;
-  --triage-yellow: #d97706;
-  --triage-yellow-foreground: #0f172a;
-  --triage-red: #dc2626;
+  --triage-yellow: #b7791f;
+  --triage-yellow-foreground: #15211e;
+  --triage-red: #c53030;
   --triage-red-foreground: #ffffff;
 
-  /* Soft UI: raised and pressed surfaces. */
-  --shadow-raised: -5px -5px 15px rgb(255 255 255 / 0.9),
-    5px 5px 15px rgb(22 78 99 / 0.14);
-  --shadow-raised-sm: -3px -3px 8px rgb(255 255 255 / 0.9),
-    3px 3px 8px rgb(22 78 99 / 0.14);
-  --shadow-pressed: inset 3px 3px 7px rgb(22 78 99 / 0.12),
-    inset -3px -3px 7px rgb(255 255 255 / 0.85);
+  /* Radius */
+  --radius: 0.75rem; /* 12px: controls */
+  --radius-surface: 1.25rem; /* 20px: major surfaces */
+
+  /* Shadow: barely there, tinted to the deep teal. */
+  --shadow-soft: 0 1px 2px rgb(18 61 58 / 0.04), 0 8px 24px -12px rgb(18 61 58 / 0.1);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 240ms;
 }
 
 @media (prefers-color-scheme: dark) {
-  /* The style supports dark mode conditionally: the same palette, deepened,
-     with softer shadows (white highlights don't work on a dark ground). */
   :root {
     color-scheme: dark;
 
-    --background: #0b2530;
-    --foreground: #e0f7fb;
+    --background: #0e1715;
+    --foreground: #e7f0ed;
+    --card: #15211e;
+    --card-foreground: #e7f0ed;
+    --popover: #15211e;
+    --popover-foreground: #e7f0ed;
 
-    --card: #10303d;
-    --card-foreground: #e0f7fb;
-    --popover: #10303d;
-    --popover-foreground: #e0f7fb;
+    --primary: #7cc7b3;
+    --primary-foreground: #0b2420;
+    --primary-text: #8fd3c0;
+    --deep: #17302c;
+    --deep-foreground: #e7f0ed;
+    --soft: #1c2f2b;
+    --fresh: #3f7a6c;
 
-    --primary: #22d3ee;
-    --primary-foreground: #0f172a;
-    --primary-text: #22d3ee;
-    --secondary: #0891b2;
-    --secondary-foreground: #ecfeff;
+    --secondary: #1b2a26;
+    --secondary-foreground: #e7f0ed;
+    --muted: #1b2a26;
+    --muted-foreground: #a6b6b1;
+    --accent: #20332e;
+    --accent-foreground: #e7f0ed;
 
-    --cta: #34d399;
-    --cta-foreground: #052e1f;
-
-    --muted: #143845;
-    --muted-foreground: #a3c4cf;
-    --accent: #17414f;
-    --accent-foreground: #e0f7fb;
-
-    /* The same red as light mode: white on it stays above 4.5:1. */
-    --destructive: #dc2626;
+    --destructive: #c53030;
     --destructive-foreground: #ffffff;
 
-    --border: rgb(165 243 252 / 0.16);
-    --input: rgb(165 243 252 / 0.24);
-    --ring: #22d3ee;
+    --border: rgb(231 240 237 / 0.1);
+    --input: rgb(231 240 237 / 0.18);
+    --ring: #7cc7b3;
 
-    --triage-green: #34d399;
-    --triage-green-foreground: #052e1f;
-    --triage-yellow: #fbbf24;
-    --triage-yellow-foreground: #1c1300;
-    --triage-red: #dc2626;
+    --triage-green: #7cc7b3;
+    --triage-green-foreground: #0b2420;
+    --triage-yellow: #e6b85c;
+    --triage-yellow-foreground: #15211e;
+    --triage-red: #c53030;
     --triage-red-foreground: #ffffff;
 
-    --shadow-raised: -4px -4px 12px rgb(255 255 255 / 0.03),
-      5px 5px 14px rgb(0 0 0 / 0.45);
-    --shadow-raised-sm: -2px -2px 6px rgb(255 255 255 / 0.03),
-      3px 3px 8px rgb(0 0 0 / 0.45);
-    --shadow-pressed: inset 3px 3px 7px rgb(0 0 0 / 0.4),
-      inset -2px -2px 6px rgb(255 255 255 / 0.03);
+    --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
   }
 }
 
@@ -137,10 +131,12 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-text: var(--primary-text);
+  --color-deep: var(--deep);
+  --color-deep-foreground: var(--deep-foreground);
+  --color-soft: var(--soft);
+  --color-fresh: var(--fresh);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-cta: var(--cta);
-  --color-cta-foreground: var(--cta-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -151,9 +147,6 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-brand-navy: var(--brand-navy);
-  --color-brand-red: var(--brand-red);
-
   --color-triage-green: var(--triage-green);
   --color-triage-green-foreground: var(--triage-green-foreground);
   --color-triage-yellow: var(--triage-yellow);
@@ -161,20 +154,35 @@
   --color-triage-red: var(--triage-red);
   --color-triage-red-foreground: var(--triage-red-foreground);
 
-  --font-sans: var(--font-atkinson), var(--font-devanagari), ui-sans-serif, system-ui,
+  /* Type: Manrope for headings, Inter for text and UI, Noto Sans
+     Devanagari for Nepali (listed second so Devanagari falls to it). */
+  --font-sans: var(--font-inter), var(--font-devanagari), ui-sans-serif, system-ui,
+    sans-serif;
+  --font-heading: var(--font-manrope), var(--font-devanagari), ui-sans-serif, system-ui,
     sans-serif;
   --font-mono: ui-monospace, monospace;
 
-  --radius-sm: calc(var(--radius) - 6px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 6px);
+  --radius-xl: var(--radius-surface);
 
-  /* `shadow-soft` (used across the app) is the raised soft-UI surface. */
-  --shadow-soft: var(--shadow-raised);
-  --shadow-raised: var(--shadow-raised);
-  --shadow-raised-sm: var(--shadow-raised-sm);
-  --shadow-pressed: var(--shadow-pressed);
+  --shadow-soft: var(--shadow-soft);
+  --ease-out: var(--ease-out);
+}
+
+/* Type scale (8px rhythm for line heights). */
+@theme {
+  --text-display: clamp(2.25rem, 1.2rem + 2.6vw, 3.25rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.025em;
+  --text-headline: clamp(1.875rem, 1.4rem + 1.8vw, 2.75rem);
+  --text-headline--line-height: 1.1;
+  --text-headline--letter-spacing: -0.02em;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.4;
+  --text-lede: 1.125rem;
+  --text-lede--line-height: 1.65;
 }
 
 @layer base {
@@ -184,6 +192,12 @@
 
   html {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 
   body {
@@ -197,8 +211,13 @@
   h1,
   h2,
   h3 {
+    font-family: var(--font-heading);
     text-wrap: balance;
-    letter-spacing: -0.015em;
+  }
+
+  /* Nepali reads best with a little more line height. */
+  :lang(ne) {
+    line-height: 1.7;
   }
 
   /* Everything clickable shows the hand cursor (Tailwind v4 resets buttons
@@ -224,6 +243,34 @@
 
   .tabular {
     font-variant-numeric: tabular-nums;
+  }
+}
+
+/*
+  The Setu line. A thin path with pathLength="1" that draws itself in as it
+  scrolls into view, where the browser supports scroll-driven animations.
+  Everywhere else, and for anyone who prefers reduced motion, it is simply
+  drawn.
+*/
+.setu-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .setu-line {
+      animation: setu-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 45%;
+    }
+  }
+}
+@keyframes setu-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
   }
 }
 

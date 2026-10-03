@@ -81,7 +81,7 @@ function ApplicationCard({
       <CardHeader className="gap-1">
         <CardTitle className="flex flex-wrap items-center gap-2">
           {a.full_name}
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">
+          <span className="rounded-[6px] bg-muted px-2 py-0.5 text-xs font-semibold">
             {ROLE_LABEL[a.role]}
           </span>
         </CardTitle>
@@ -299,7 +299,7 @@ export function AdminView() {
         </Button>
       </div>
 
-      <div role="tablist" aria-label="Application status" className="flex gap-1 rounded-full bg-muted p-1">
+      <div role="tablist" aria-label="Application status" className="flex gap-1 rounded-[12px] bg-muted p-1">
         {TABS.map(({ status, label }) => (
           <button
             key={status}
@@ -311,7 +311,7 @@ export function AdminView() {
               setTab(status);
             }}
             className={cn(
-              "flex-1 rounded-full px-3 py-2 text-sm font-semibold transition-colors",
+              "flex-1 rounded-[10px] px-3 py-2 text-sm font-semibold transition-colors",
               tab === status ? "bg-card shadow-soft" : "text-muted-foreground hover:text-foreground",
             )}
           >

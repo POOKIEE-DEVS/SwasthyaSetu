@@ -13,21 +13,22 @@ export function BrandMark({ className }: { className?: string }) {
       width={128}
       height={128}
       className={cn(
-        "size-8 shrink-0 dark:rounded-full dark:bg-[oklch(0.96_0.01_255)] dark:p-[3px]",
+        "size-8 shrink-0 dark:rounded-full dark:bg-[#f7faf8] dark:p-[3px]",
         className,
       )}
     />
   );
 }
 
-/** Mark + wordmark, coloured like the logo: "Swasthya" navy, "Setu" red. */
+/** Mark + wordmark. The wordmark uses the site palette: red is reserved
+ * for emergencies, so "Setu" is set in health teal rather than red. */
 export function BrandLockup({ className }: { className?: string }) {
   return (
     <span className={cn("flex items-center gap-2", className)} translate="no">
       <BrandMark />
-      <span className="text-[17px] font-bold tracking-tight">
+      <span className="font-heading text-[17px] font-extrabold tracking-tight">
         <span className="text-foreground">Swasthya</span>
-        <span className="text-brand-red">Setu</span>
+        <span className="text-primary-text">Setu</span>
       </span>
     </span>
   );
