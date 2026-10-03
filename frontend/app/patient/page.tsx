@@ -9,7 +9,7 @@ export default function PatientPage() {
   return (
     <>
       <SiteHeader role="Patient" languageSwitch />
-      <main id="main">
+      <main id="main" className="page-enter">
         <PatientView />
       </main>
     </>

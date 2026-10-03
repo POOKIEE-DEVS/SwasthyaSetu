@@ -4,17 +4,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-// Modest 8px corners. Feedback is a colour change on hover and a 1px
-// press on click; no shadows, gradients or glow.
+// Modest 8px corners. Feedback: a colour change on hover (the primary
+// action also lifts by 1px) and a slight press on click, in 160ms; no
+// shadows, gradients, glow or bounce.
 // On phones every button is at least 44px tall; compact again from `sm`.
 const buttonVariants = cva(
-  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[8px] text-sm font-semibold transition-[background-color,color,border-color,transform] duration-150 ease-[var(--ease-out)] active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[8px] text-sm font-semibold transition-[background-color,color,border-color,translate,scale] duration-[160ms] ease-out active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:-translate-y-px hover:bg-primary/90 active:translate-y-0",
         // Kept as an alias of the primary action for existing screens.
-        cta: "bg-primary text-primary-foreground hover:bg-primary/90",
+        cta: "bg-primary text-primary-foreground hover:-translate-y-px hover:bg-primary/90 active:translate-y-0",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
           "border border-input bg-card text-foreground hover:border-foreground/40 hover:bg-accent",

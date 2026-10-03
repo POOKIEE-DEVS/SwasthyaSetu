@@ -455,6 +455,14 @@
   border-bottom-color: transparent;
 }
 
+/* --- App pages: a short, quiet entrance, nothing more ----------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter {
+    --rise: 6px;
+    animation: rise-in 220ms var(--ease-out) backwards;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

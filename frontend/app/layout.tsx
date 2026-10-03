@@ -63,8 +63,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
+    // data-scroll-behavior: anchor links scroll smoothly (globals.css), but
+    // route changes jump straight to the top instead of gliding there.
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${inter.variable} ${newsreader.variable} ${notoDevanagari.variable} ${notoSerifDevanagari.variable}`}
     >
       <body className="min-h-dvh font-sans">

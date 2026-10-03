@@ -10,7 +10,7 @@ export default function DoctorPage() {
   return (
     <>
       <SiteHeader role="Professional" />
-      <main id="main">
+      <main id="main" className="page-enter">
         <ProfessionalGate>
           <DoctorView />
         </ProfessionalGate>

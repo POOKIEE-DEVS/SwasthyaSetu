@@ -59,7 +59,7 @@ export function GetHelpLink({ className }: { className?: string }) {
     <Link
       href="/patient/"
       className={cn(
-        "inline-flex h-10 items-center rounded-[8px] bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors duration-150 hover:bg-primary/90 active:translate-y-px",
+        "inline-flex h-10 items-center rounded-[8px] bg-primary px-4 text-sm font-semibold text-primary-foreground transition-[background-color,translate,scale] duration-150 ease-out hover:-translate-y-px hover:bg-primary/90 active:translate-y-0 active:scale-[0.985]",
         className,
       )}
     >

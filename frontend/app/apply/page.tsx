@@ -9,7 +9,7 @@ export default function ApplyPage() {
   return (
     <>
       <SiteHeader role="Professional" />
-      <main id="main" className="mx-auto w-full max-w-2xl px-4 py-8">
+      <main id="main" className="page-enter mx-auto w-full max-w-2xl px-4 py-8">
         <ApplyView />
       </main>
     </>
