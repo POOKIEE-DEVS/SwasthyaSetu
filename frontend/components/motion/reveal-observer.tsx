@@ -9,10 +9,12 @@ import { matches, REDUCED_MOTION_QUERY } from "@/lib/motion";
  *
  * Elements marked `data-reveal` start hidden only once this has run (it adds
  * `reveal-ready` to <html>), so without JavaScript, or with reduced
- * motion, everything is simply visible. Anything already on screen is
- * marked revealed in the same frame, so a refresh halfway down the page
- * never blinks. Each element reveals once and stays; scrolling back up
- * does not replay it.
+ * motion, everything is simply visible. Anything already on screen when
+ * this runs is marked revealed in the same frame, so it never disappears;
+ * anything reached later (including by a deep link that scrolls after
+ * loading) reveals as it arrives. Hiding is instant, only the reveal
+ * animates. Each element reveals once and stays; scrolling back up does
+ * not replay it.
  *
  * CSS owns the animation (see "Reveals" in globals.css). Put `data-reveal`
  * on wrappers, never on elements with their own transform or transition.

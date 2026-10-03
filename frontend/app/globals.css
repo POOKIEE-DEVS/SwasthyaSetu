@@ -365,7 +365,10 @@
    children by --step. --reveal-y, --reveal-duration and --stagger tune a
    wrapper. */
 @media (prefers-reduced-motion: no-preference) {
-  html.reveal-ready :is([data-reveal]:not([data-reveal="group"]), [data-reveal] [data-reveal-step]) {
+  /* The transition lives on the revealed state only: hiding is instant
+     (never a visible fade-out if the page scrolls late, as on a deep
+     link), and only the reveal animates. */
+  html.reveal-ready :is([data-reveal][data-revealed]:not([data-reveal="group"]), [data-reveal][data-revealed] [data-reveal-step]) {
     transition:
       opacity var(--reveal-duration, 700ms) var(--ease-editorial),
       transform var(--reveal-duration, 700ms) var(--ease-editorial);
@@ -400,8 +403,8 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   /* (Pseudo-elements can't go inside :is(), hence the pairs.) */
-  html.reveal-ready [data-reveal] .reveal-rules::before,
-  html.reveal-ready [data-reveal] .reveal-rules > *::after {
+  html.reveal-ready [data-reveal][data-revealed] .reveal-rules::before,
+  html.reveal-ready [data-reveal][data-revealed] .reveal-rules > *::after {
     transition: transform 600ms var(--ease-editorial);
     transition-delay: calc(var(--step, 0) * var(--stagger, 110ms));
   }
