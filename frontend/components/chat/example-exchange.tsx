@@ -8,11 +8,18 @@ import { cn } from "@/lib/utils";
 
 /**
  * A worked example of the first-aid assistant: one question, the kind of
- * reply it gives, and what can come next. Drawn like the real chat, but
- * labelled as an example and never a real message (no data-role), so it
- * can't be mistaken for, or counted as, a reply.
+ * reply it gives, and (unless `showNext` is false, where the page already
+ * says it) what can come next. Drawn like the real chat, but labelled as
+ * an example and never a real message (no data-role), so it can't be
+ * mistaken for, or counted as, a reply.
  */
-export function ExampleExchange({ className }: { className?: string }) {
+export function ExampleExchange({
+  showNext = true,
+  className,
+}: {
+  showNext?: boolean;
+  className?: string;
+}) {
   const { t } = useCopy();
   return (
     <figure aria-label={t.chat.exampleLabel} className={cn("flex flex-col gap-4", className)}>
@@ -28,10 +35,12 @@ export function ExampleExchange({ className }: { className?: string }) {
           {t.chat.exampleReply}
         </p>
       </div>
-      <p className="flex items-start gap-2 text-sm text-muted-foreground">
-        <Video aria-hidden className="mt-0.5 size-4 shrink-0" />
-        {t.chat.exampleNext}
-      </p>
+      {showNext && (
+        <p className="flex items-start gap-2 text-sm text-muted-foreground">
+          <Video aria-hidden className="mt-0.5 size-4 shrink-0" />
+          {t.chat.exampleNext}
+        </p>
+      )}
     </figure>
   );
 }

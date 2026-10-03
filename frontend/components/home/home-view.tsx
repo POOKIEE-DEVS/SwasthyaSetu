@@ -46,7 +46,7 @@ function EmergencyCall({ className }: { className?: string }) {
     <a
       href="tel:102"
       className={cn(
-        "inline-flex min-h-12 items-center justify-center gap-2.5 rounded-[8px] border border-input px-5 text-[15px] text-foreground transition-colors duration-150 hover:border-foreground/40 sm:justify-start sm:border-0 sm:px-0",
+        "inline-flex min-h-12 items-center justify-center gap-2.5 whitespace-nowrap rounded-[8px] border border-input px-5 text-[15px] text-foreground transition-colors duration-150 hover:border-foreground/40 sm:justify-start sm:border-0 sm:px-0",
         className,
       )}
     >
@@ -75,7 +75,7 @@ function Hero() {
       <div className="mt-8 lg:mt-14 lg:grid lg:grid-cols-12 lg:gap-6">
         <div className="lg:col-span-6 lg:col-start-7 xl:col-span-5 xl:col-start-7">
           <p className="max-w-[36ch] text-lede text-muted-foreground">{t.hero.lede}</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8">
             <GetHelpButton label={t.hero.cta} />
             <EmergencyCall />
           </div>
@@ -146,7 +146,7 @@ function HowItWorks() {
 
           <div className="lg:col-span-5 lg:col-start-8">
             <div className="rounded-[12px] border bg-card p-6 sm:p-8">
-              <ExampleExchange />
+              <ExampleExchange showNext={false} />
             </div>
             <Link
               href="/patient/"
@@ -214,16 +214,9 @@ function Safety() {
         <h2 id="safety-title" className="font-display text-headline lg:col-span-6">
           {t.safety.title}
         </h2>
-        <div className="lg:col-span-5 lg:col-start-8 lg:pt-4">
-          <p className="text-lede text-deep-foreground/85">{t.safety.body}</p>
-          <a
-            href="tel:102"
-            className="mt-8 inline-flex min-h-12 items-center gap-2.5 font-semibold underline decoration-deep-foreground/40 underline-offset-4 hover:decoration-deep-foreground"
-          >
-            <Phone aria-hidden className="size-4" />
-            {t.hero.emergencyQ} {t.hero.emergencyCall}
-          </a>
-        </div>
+        <p className="text-lede text-deep-foreground/85 lg:col-span-5 lg:col-start-8 lg:pt-4">
+          {t.safety.body}
+        </p>
       </div>
     </section>
   );
@@ -241,11 +234,9 @@ function Footer() {
           Bridging Health. Delivering Hope.
         </p>
       </div>
+      {/* Only what the header doesn't already offer. */}
       <nav aria-label="Footer" className="lg:col-span-4">
         <ul className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-          <li><a href="#how" className={link}>{t.nav.how}</a></li>
-          <li><a href="#professionals" className={link}>{t.nav.professionals}</a></li>
-          <li><a href="#safety" className={link}>{t.nav.safety}</a></li>
           <li><Link href="/doctor/" className={link}>{t.footer.forProfessionals}</Link></li>
           <li><Link href="/account/" className={link}>{t.footer.account}</Link></li>
         </ul>
