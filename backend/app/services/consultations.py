@@ -38,6 +38,10 @@ class Consultation:
     patient_token: str
     doctor_token: str | None = None
     professional: ProfessionalBadge | None = None
+    # The account that accepted, and when: for their help record. Never
+    # sent to clients.
+    professional_user_id: int | None = None
+    accepted_at: float | None = None
     status: Status = "waiting"
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
@@ -88,24 +92,32 @@ class ConsultationRegistry:
         )
 
     def accept(
-        self, consultation_id: str, professional: ProfessionalBadge
+        self,
+        consultation_id: str,
+        professional: ProfessionalBadge,
+        professional_user_id: int | None = None,
     ) -> Consultation:
         consultation = self.get(consultation_id)
         if consultation.status != "waiting":
             raise ConsultationUnavailableError(consultation_id)
         consultation.status = "active"
         consultation.professional = professional
+        consultation.professional_user_id = professional_user_id
         consultation.doctor_token = secrets.token_urlsafe(24)
-        consultation.updated_at = time.time()
+        consultation.accepted_at = consultation.updated_at = time.time()
         return consultation
 
-    def end(self, consultation_id: str, token: str) -> Consultation:
+    def end(self, consultation_id: str, token: str) -> tuple[Consultation, bool]:
+        """Ends the call. Also says whether this ended an accepted call, the
+        first time only, which is when it goes in the help record (both
+        participants report the end, and a patient may give up waiting)."""
         consultation = self.get(consultation_id)
         if self.role_for(consultation, token) is None:
             raise ConsultationNotFoundError(consultation_id)
+        completed = consultation.status == "active"
         consultation.status = "ended"
         consultation.updated_at = time.time()
-        return consultation
+        return consultation, completed
 
     @staticmethod
     def role_for(consultation: Consultation, token: str) -> Role | None:

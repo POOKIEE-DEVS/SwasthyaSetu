@@ -62,3 +62,17 @@ class SignalMessage(BaseModel):
 
     type: Literal["offer", "answer", "ice-candidate", "hangup"]
     payload: dict[str, Any] | None = None
+
+
+class HelpedPerson(BaseModel):
+    patient_name: str
+    started_at: float
+    duration_seconds: int
+
+
+class HelpSummary(BaseModel):
+    """A professional's own record: how many people they have helped (every
+    call) and the most recent of them."""
+
+    count: int
+    people: list[HelpedPerson]

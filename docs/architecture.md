@@ -39,6 +39,7 @@ removes CORS and build-time API URLs, and keeps in-memory state in one place.
 | `ai/prompts.py` | System prompt (bilingual, first-aid only, no doses, 102 for emergencies) and a keyword emergency check |
 | `api/consultations.py` | Request a doctor / accept / end. Returns a **call ticket**: a room token plus ICE servers |
 | `services/consultations.py` | In-memory registry. Atomic accept, so two doctors can't both take one patient |
+| `services/help_records.py` | Each professional's record of people helped: written once when an accepted call ends; `GET /api/v1/consultations/helped` returns the count and the 50 most recent, for the signed-in professional only |
 | `realtime/websocket.py` | Doctor queue push and per-call signalling relay |
 | `realtime/ice.py` | STUN + TURN config: Cloudflare-minted credentials or static ones |
 | `api/auth.py`, `services/auth.py` | Google sign-in (authorization code + PKCE), session cookies, role choice, development login (local only) |
@@ -88,6 +89,15 @@ request to the waiting list, on accept, and when the queue WebSocket opens.
 Verified pharmacists, nurses, paramedics and MBBS students take calls
 exactly like doctors, and the patient always sees who accepted ("Verified
 Doctor · Dr. …", "Verified Nurse · …").
+
+**Help record.** When an accepted call ends, the backend writes one
+`help_records` row: the professional, the patient's name (as given when
+asking for help), when the professional accepted, and how long the call
+lasted. It is keyed by the call, so the two "end" reports from both sides
+count once, and a patient who gives up while waiting is not counted. If the
+database is down the call still ends normally and the record is skipped. The
+professional's page shows "You've helped N people" and the list. The patient
+is told this on the request form.
 
 **Saved chats.** For a signed-in patient each successful reply is stored with
 the messages that led to it; a conversation started as a guest is saved on

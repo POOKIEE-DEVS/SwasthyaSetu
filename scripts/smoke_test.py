@@ -9,6 +9,7 @@ fake camera and microphone:
   -> professional sees them live, with the shared chat -> accepts
   -> two-way audio+video, patient sees "Verified Doctor" -> mute / camera off
   -> patient refreshes mid-call and the call re-establishes -> hang up
+  -> the professional's help record counts the call, with the patient's name
   -> patient signs in and finds the conversation in "My chats"
 
 Locally, run the server with DEV_LOGIN=true and ADMIN_EMAILS including
@@ -288,6 +289,9 @@ def main() -> int:
             card.get_by_role("button", name="Approve").click()
             expect(card).to_have_count(0, timeout=15000)
 
+        # The professional's "You've helped N people" before the call.
+        helped_before: dict[str, int] = {}
+
         def professional_goes_online():
             if dev_mode:
                 doctor.get_by_role("button", name="Check again").click()
@@ -300,6 +304,9 @@ def main() -> int:
                 timeout=15000
             )
             doctor.get_by_role("button", name="Go online").click()
+            help_count = doctor.get_by_test_id("help-count")
+            expect(help_count).to_be_visible(timeout=15000)
+            helped_before["count"] = int(help_count.inner_text())
             expect(doctor.get_by_text("Online · you'll hear a tone")).to_be_visible(
                 timeout=15000
             )
@@ -407,6 +414,16 @@ def main() -> int:
                 patient.get_by_text("I burned my hand on the stove").first
             ).to_be_visible()
 
+        def help_record_counts_the_call():
+            expected = str(helped_before["count"] + 1)
+            record = doctor.get_by_test_id("help-record")
+            expect(record.get_by_test_id("help-count")).to_have_text(
+                expected, timeout=15000
+            )
+            expect(record.get_by_text("Smoke Test").first).to_be_visible()
+            shot(doctor, "7-help-record")
+            return f"helped {expected}"
+
         def patient_signs_in_and_finds_chat():
             patient.get_by_role("link", name="Sign in to save chats").click()
             dev_sign_in(patient, f"patient-{run_id}@smoke.test", "Smoke Patient")
@@ -431,6 +448,7 @@ def main() -> int:
             ("mute and camera-off toggle the real tracks", controls),
             ("patient refresh mid-call re-establishes the call", refresh_rejoins),
             ("hang up ends both sides, chat kept", hang_up),
+            ("help record counts the call, with the name", help_record_counts_the_call),
         ]
         if dev_mode:
             steps = [

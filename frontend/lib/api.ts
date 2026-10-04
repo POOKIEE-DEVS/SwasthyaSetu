@@ -44,6 +44,10 @@ export type CallTicket = {
   ice_servers: IceServer[];
 };
 
+/** A professional's own record of the people they have helped. */
+export type HelpedPerson = { patient_name: string; started_at: number; duration_seconds: number };
+export type HelpSummary = { count: number; people: HelpedPerson[] };
+
 export type VerificationStatus = "pending" | "approved" | "rejected";
 
 export type VerificationSummary = {
@@ -166,6 +170,7 @@ export const api = {
       post({ patient_name: patientName, summary }),
     ),
 
+  helped: () => request<HelpSummary>("/api/v1/consultations/helped"),
   accept: (consultationId: string) =>
     request<CallTicket>(`/api/v1/consultations/${consultationId}/accept`, post()),
 

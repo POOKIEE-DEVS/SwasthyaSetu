@@ -33,6 +33,9 @@ communities where medical help is far away.
   recommendation; everyone uploads their
   citizenship certificate. An admin reviews every application by hand. Only
   approved professionals can see waiting patients or take calls.
+- **Help record.** Each professional sees "You've helped N people" and who:
+  the patient's name, the date and the length of each finished call. Each
+  professional sees only their own record.
 
 ## Stack
 

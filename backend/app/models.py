@@ -141,3 +141,22 @@ class ChatEntry(SQLModel, table=True):
     role: str = Field(max_length=10)  # user | assistant
     content: str = Field(sa_column=Column(Text, nullable=False))
     created_at: datetime = Field(default_factory=utcnow)
+
+
+class HelpRecord(SQLModel, table=True):
+    """One person a verified professional helped: written once, when an
+    accepted call ends. Only that professional can read their records."""
+
+    __tablename__ = "help_records"
+
+    id: int | None = Field(default=None, primary_key=True)
+    professional_id: int = Field(
+        foreign_key="users.id", index=True, ondelete="CASCADE"
+    )
+    # The call it records; unique, so a call is never counted twice.
+    consultation_id: str = Field(unique=True, max_length=32)
+    # As the patient gave it when asking for help.
+    patient_name: str = Field(max_length=60)
+    started_at: datetime  # when the professional accepted
+    ended_at: datetime
+    duration_seconds: int

@@ -9,8 +9,11 @@ paramedics and MBBS students.
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi.concurrency import run_in_threadpool
+from sqlmodel import Session
 
 from app.api.deps import VerifiedProfessional, require_professional
+from app.db import get_session
 from app.realtime.ice import get_ice_servers
 from app.realtime.websocket import broadcast_queue
 from app.schemas.consultation import (
@@ -18,8 +21,9 @@ from app.schemas.consultation import (
     ConsultationCreate,
     ConsultationPublic,
     EndCall,
+    HelpSummary,
 )
-from app.services import consultations
+from app.services import consultations, help_records
 from app.services.consultations import (
     ConsultationNotFoundError,
     ConsultationUnavailableError,
@@ -47,13 +51,23 @@ async def waiting_patients(
     return [c.public() for c in consultations.waiting()]
 
 
+@router.get("/helped", response_model=HelpSummary)
+def people_helped(
+    pro: VerifiedProfessional = Depends(require_professional),
+    db: Session = Depends(get_session),
+) -> HelpSummary:
+    """The signed-in professional's own help record, and nobody else's."""
+    assert pro.user.id is not None
+    return help_records.summary_for(db, pro.user.id)
+
+
 @router.post("/{consultation_id}/accept", response_model=CallTicket)
 async def accept(
     consultation_id: str,
     pro: VerifiedProfessional = Depends(require_professional),
 ) -> CallTicket:
     try:
-        consultation = consultations.accept(consultation_id, pro.badge)
+        consultation = consultations.accept(consultation_id, pro.badge, pro.user.id)
     except ConsultationNotFoundError as exc:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, "This request no longer exists."
@@ -80,9 +94,12 @@ async def accept(
 )
 async def end(consultation_id: str, body: EndCall) -> Response:
     try:
-        consultations.end(consultation_id, body.token)
+        consultation, completed = consultations.end(consultation_id, body.token)
     except ConsultationNotFoundError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found.") from exc
+    if completed:
+        # Into the professional's help record. Never fails the hang-up.
+        await run_in_threadpool(help_records.record_call, consultation)
     # A patient who gives up while still waiting leaves the doctors' queue.
     await broadcast_queue()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

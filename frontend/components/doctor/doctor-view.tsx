@@ -5,6 +5,7 @@ import { Loader2, Power } from "lucide-react";
 
 import { VideoCall } from "@/components/call/video-call";
 import { MessageText } from "@/components/chat/message-text";
+import { HelpRecord } from "@/components/doctor/help-record";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api, ApiError, wsUrl, type Consultation } from "@/lib/api";
@@ -169,6 +170,7 @@ export function DoctorView() {
             </Button>
           </CardContent>
         </Card>
+        <HelpRecord />
       </div>
     );
   }
@@ -245,6 +247,8 @@ export function DoctorView() {
           ))}
         </ul>
       )}
+
+      <HelpRecord />
     </div>
   );
 }

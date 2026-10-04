@@ -108,8 +108,13 @@ export function PatientView() {
                   autoFocus
                   required
                   autoComplete="given-name"
+                  aria-describedby="help-record-note"
                 />
               </label>
+              <p id="help-record-note" className="-mt-2 text-xs text-muted-foreground">
+                The professional who helps you keeps your name and the date of the call in
+                their record of people they have helped.
+              </p>
 
               {messages.length > 0 && (
                 <label className="flex items-start gap-2.5 text-sm">
