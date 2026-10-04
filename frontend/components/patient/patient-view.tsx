@@ -86,8 +86,8 @@ export function PatientView() {
               Talk to a verified doctor
             </CardTitle>
             <CardDescription>
-              A verified doctor, pharmacist or MBBS student will join a video call with
-              you. Keep this page open.
+              A verified doctor, pharmacist, nurse, paramedic or MBBS student will join a
+              video call with you. Keep this page open.
             </CardDescription>
           </CardHeader>
           <CardContent>

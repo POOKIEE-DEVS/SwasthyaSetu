@@ -87,17 +87,34 @@ def test_doctor_applies_and_sees_pending(client: TestClient) -> None:
     assert client.get("/api/v1/applications/me").json()["id"] == body["id"]
 
 
-def test_pharmacist_needs_council_number_and_certificate(client: TestClient) -> None:
-    sign_in(client, "ph@example.com")
-    data, files = doctor_form(role="pharmacist", council_number="")
+@pytest.mark.parametrize(
+    ("role", "council"),
+    [
+        ("pharmacist", "Nepal Pharmacy Council"),
+        ("nurse", "Nepal Nursing Council"),
+        ("paramedic", "Nepal Health Professional Council"),
+    ],
+)
+def test_registered_professions_need_their_council_number_and_certificate(
+    client: TestClient, role: str, council: str
+) -> None:
+    sign_in(client, f"{role}@example.com")
+    data, files = doctor_form(role=role, council_number="")
     missing_number = apply(client, data, files)
     assert missing_number.status_code == 422
-    assert "Nepal Pharmacy Council" in missing_number.json()["detail"]
+    assert council in missing_number.json()["detail"]
 
-    data, files = doctor_form(role="pharmacist")
+    data, files = doctor_form(role=role)
     del files["council_certificate"]
     missing_certificate = apply(client, data, files)
+    assert missing_certificate.status_code == 422
     assert "certificate" in missing_certificate.json()["detail"]
+
+    data, files = doctor_form(role=role)
+    submitted = apply(client, data, files)
+    assert submitted.status_code == 201, submitted.text
+    assert submitted.json()["role"] == role
+    assert submitted.json()["council_number"]
 
 
 def test_student_needs_recommendation(client: TestClient) -> None:

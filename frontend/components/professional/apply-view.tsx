@@ -20,10 +20,16 @@ import {
 import { isProfessional, useAuth, useAuthStore, verifiedRole } from "@/lib/store/auth";
 import { cn } from "@/lib/utils";
 
-const COUNCIL: Record<"doctor" | "pharmacist", { name: string; short: string }> = {
+/** The council each registered profession gives its number from. MBBS
+ * students give a doctor's recommendation instead. */
+const COUNCIL: Record<Exclude<ProfessionalRole, "student">, { name: string; short: string }> = {
   doctor: { name: "Nepal Medical Council", short: "NMC" },
   pharmacist: { name: "Nepal Pharmacy Council", short: "NPC" },
+  nurse: { name: "Nepal Nursing Council", short: "NNC" },
+  paramedic: { name: "Nepal Health Professional Council", short: "NHPC" },
 };
+
+const ROLE_OPTIONS: ProfessionalRole[] = ["doctor", "pharmacist", "nurse", "paramedic", "student"];
 
 type Fields = {
   full_name: string;
@@ -170,8 +176,8 @@ function ApplicationForm({
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-sm font-medium">I am a</legend>
-        <div className="grid grid-cols-3 gap-2" role="radiogroup">
-          {(["doctor", "pharmacist", "student"] as const).map((option) => (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup">
+          {ROLE_OPTIONS.map((option) => (
             <button
               key={option}
               type="button"
@@ -417,8 +423,8 @@ export function ApplyView() {
           Get verified
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Doctors, pharmacists and MBBS students can take patient calls once an admin has
-          checked their documents.
+          Doctors, pharmacists, nurses, paramedics and MBBS students can take patient calls
+          once an admin has checked their documents.
         </p>
       </div>
       <ApplicationForm

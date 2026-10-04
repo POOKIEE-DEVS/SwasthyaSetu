@@ -118,8 +118,8 @@ def test_unverified_professional_cannot_accept(client: TestClient, status: str) 
     assert "verified" in response.json()["detail"]
 
 
-@pytest.mark.parametrize("role", ["pharmacist", "student"])
-def test_verified_pharmacists_and_students_can_accept(
+@pytest.mark.parametrize("role", ["pharmacist", "nurse", "paramedic", "student"])
+def test_every_verified_profession_can_accept(
     client: TestClient, role: str
 ) -> None:
     cid = request_doctor(client)["consultation"]["id"]

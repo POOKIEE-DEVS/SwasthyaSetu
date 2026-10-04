@@ -50,12 +50,13 @@ class VerifiedProfessional:
 def require_professional(
     user: User = Depends(current_user), db: Session = Depends(get_session)
 ) -> VerifiedProfessional:
-    """A doctor, pharmacist or MBBS student whose application is approved."""
+    """A doctor, pharmacist, nurse, paramedic or MBBS student whose
+    application is approved."""
     application = verification.application_for(db, user)
     if application is None or not verification.is_verified(user, application):
         raise HTTPException(
             status.HTTP_403_FORBIDDEN,
-            "Only verified doctors, pharmacists and MBBS students can do this.",
+            "Only verified medical professionals can do this.",
         )
     return VerifiedProfessional(user=user, application=application)
 

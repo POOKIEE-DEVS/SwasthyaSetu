@@ -282,8 +282,8 @@ function Professionals() {
           </Link>
         </div>
 
-        {/* Doctor, then pharmacist, then MBBS student, each with its rule
-            drawing in from the left. Once. */}
+        {/* Each profession in turn, each with its rule drawing in from the
+            left. Once. */}
         <div data-reveal="group" className="lg:col-span-5 lg:col-start-8 lg:pt-4">
           <dl className="reveal-rules">
             {t.pros.categories.map(({ who, needs }, i) => (
@@ -301,7 +301,7 @@ function Professionals() {
           <p
             data-reveal-step
             className="mt-6 text-sm text-muted-foreground"
-            style={vars({ "--step": 4 })}
+            style={vars({ "--step": t.pros.categories.length + 1 })}
           >
             {t.pros.everyone}
           </p>

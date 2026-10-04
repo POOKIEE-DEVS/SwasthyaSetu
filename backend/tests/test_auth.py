@@ -94,6 +94,15 @@ def test_choose_role(client: TestClient) -> None:
     assert bad.status_code == 422
 
 
+def test_nurses_and_paramedics_can_choose_their_role(client: TestClient) -> None:
+    for role in ("nurse", "paramedic"):
+        client.cookies.clear()
+        sign_in(client, f"{role}@example.com")
+        chosen = client.post("/api/v1/auth/role", json={"role": role})
+        assert chosen.status_code == 200, chosen.text
+        assert chosen.json()["role"] == role
+
+
 def test_google_login_needs_configuration(client: TestClient) -> None:
     response = client.get("/api/v1/auth/google/login", follow_redirects=False)
     assert response.status_code == 404

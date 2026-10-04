@@ -2,7 +2,8 @@
 
 Patients never need to sign in: an emergency must not wait on a login.
 Seeing the waiting list (which includes shared chats) and accepting a
-patient are for verified doctors, pharmacists and MBBS students only.
+patient are for verified professionals only: doctors, pharmacists, nurses,
+paramedics and MBBS students.
 """
 
 from __future__ import annotations

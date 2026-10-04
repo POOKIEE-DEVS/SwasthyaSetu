@@ -3,7 +3,7 @@
 ```mermaid
 flowchart LR
     P["Patient browser<br/>(no login needed)"] -- "HTTPS: pages, /api/v1/chat, /api/v1/consultations" --> A
-    D["Verified professional<br/>(doctor, pharmacist, MBBS student)"] -- "HTTPS + WSS /ws/doctors (live queue)" --> A
+    D["Verified professional<br/>(doctor, pharmacist, nurse, paramedic, MBBS student)"] -- "HTTPS + WSS /ws/doctors (live queue)" --> A
     R["Admin browser"] -- "HTTPS /api/v1/admin (review)" --> A
     P <-- "WSS /ws/consultations/{id}: WebRTC signalling" --> A
     D <-- "WSS /ws/consultations/{id}" --> A
@@ -23,7 +23,7 @@ Zustand) built as a **static export**. Installable via the web app manifest.
 |---|---|---|
 | `/` | Everyone | Landing page: what SwasthyaSetu is and who answers, in English or नेपाली. **Get first-aid help** opens the chat; 102 is in the hero and the header. No login. |
 | `/patient/` | Everyone | **Emergency first**: the first-aid chat, 102 button, "Talk to a professional". No login. Signed-in patients also get "My chats". |
-| `/account/` | Everyone | Sign in with Google, choose a role (Patient, Doctor, Pharmacist, MBBS Student), sign out |
+| `/account/` | Everyone | Sign in with Google, choose a role (Patient, Doctor, Pharmacist, Nurse, Paramedic, MBBS Student), sign out |
 | `/apply/` | Professionals | Verification form: identity, council number or recommendation, document photos |
 | `/doctor/` | Verified professionals | Go online → live queue → accept → call. Others see where their application stands |
 | `/admin/` | The admin | Review applications and documents; approve, reject with reason, revoke |
@@ -62,8 +62,8 @@ and sets an HttpOnly, SameSite=Lax session cookie. Only a SHA-256 hash of
 the session token is stored. Sign-in is **optional for patients**; nothing on
 the emergency path asks for it.
 
-**Roles.** After the first sign-in a user picks Patient, Doctor, Pharmacist
-or MBBS Student. Admin is not a role: it is granted to the Google accounts in
+**Roles.** After the first sign-in a user picks Patient, Doctor, Pharmacist,
+Nurse, Paramedic or MBBS Student. Admin is not a role: it is granted to the Google accounts in
 `ADMIN_EMAILS`, and the admin skips role selection.
 
 **Verification (KYC).** A professional submits:
@@ -72,6 +72,8 @@ or MBBS Student. Admin is not a role: it is granted to the Google accounts in
 |---|---|---|
 | Doctor | Citizenship number + district, photos of both sides; optional selfie holding it | Nepal Medical Council (NMC) number + certificate |
 | Pharmacist | same | Nepal Pharmacy Council number + certificate |
+| Nurse | same | Nepal Nursing Council (NNC) number + certificate |
+| Paramedic (health assistant, CMA and similar) | same | Nepal Health Professional Council (NHPC) number + certificate |
 | MBBS student | same | Medical college, recommending doctor's name and NMC number, letter of recommendation |
 
 File types are detected from the bytes (JPEG, PNG, WebP, PDF), never from
@@ -83,8 +85,9 @@ the same application. Every step is in the audit log.
 A user is a **verified professional** only while their application is
 approved *and* their role matches it. The server checks this on every
 request to the waiting list, on accept, and when the queue WebSocket opens.
-Verified pharmacists and MBBS students take calls exactly like doctors, and
-the patient always sees who accepted ("Verified Doctor · Dr. …").
+Verified pharmacists, nurses, paramedics and MBBS students take calls
+exactly like doctors, and the patient always sees who accepted ("Verified
+Doctor · Dr. …", "Verified Nurse · …").
 
 **Saved chats.** For a signed-in patient each successful reply is stored with
 the messages that led to it; a conversation started as a guest is saved on

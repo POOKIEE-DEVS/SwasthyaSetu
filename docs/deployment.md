@@ -165,7 +165,7 @@ reach). Free Supabase projects pause after a week without activity.
 1. On the site, **Sign in** with the admin's Google account. The account
    page shows **Admin: review applications**.
 2. On another browser (or a private window), sign in with the professional's
-   Google account → choose **Doctor** (or Pharmacist / MBBS Student) → fill
+   Google account → choose **Doctor** (or Pharmacist / Nurse / Paramedic / MBBS Student) → fill
    in the verification form and upload the documents → **Submit for
    review**.
 3. As the admin, open `/admin/` → check the documents and look the NMC /

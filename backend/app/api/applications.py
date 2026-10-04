@@ -3,6 +3,9 @@
 Everyone uploads both sides of their citizenship certificate. Then:
 - Doctor: Nepal Medical Council (NMC) number + NMC certificate.
 - Pharmacist: Nepal Pharmacy Council number + its certificate.
+- Nurse: Nepal Nursing Council number + its certificate.
+- Paramedic (health assistant, CMA and similar): Nepal Health
+  Professional Council number + its certificate.
 - MBBS student: college, the recommending doctor's name and NMC number,
   and the recommendation letter.
 A selfie holding the citizenship certificate is optional.
@@ -33,6 +36,14 @@ from app.services.documents import (
 )
 
 router = APIRouter(prefix="/applications", tags=["verification"])
+
+# The council each registered profession is checked against.
+COUNCILS: dict[str, str] = {
+    "doctor": "Nepal Medical Council",
+    "pharmacist": "Nepal Pharmacy Council",
+    "nurse": "Nepal Nursing Council",
+    "paramedic": "Nepal Health Professional Council",
+}
 
 PHONE_RE = re.compile(r"^\+?[0-9][0-9 -]{6,18}$")
 ID_NUMBER_RE = re.compile(r"^[0-9A-Za-z][0-9A-Za-z /-]{0,39}$")
@@ -128,12 +139,8 @@ def submit_application(
             ),
         ]
 
-        if role in ("doctor", "pharmacist"):
-            council = (
-                "Nepal Medical Council"
-                if role == "doctor"
-                else "Nepal Pharmacy Council"
-            )
+        if role in COUNCILS:
+            council = COUNCILS[role]
             number = _clean(council_number)
             if not number or not ID_NUMBER_RE.match(number):
                 raise _bad(f"Please enter your {council} registration number.")

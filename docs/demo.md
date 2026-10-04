@@ -14,14 +14,14 @@ laptop is signed in as the **admin**, for the trust beat.
 | 1:30–2:00 | Patient laptop | Switch to Nepali: *"मेरो बुबाको छाती दुख्यो"* ("my father has chest pain"). The red emergency banner appears with the reply, with **Call 102** and **Talk to a professional**. Point out that 102 was in the header the whole time. |
 | 2:00–2:30 | Both | Patient: **Talk to a professional** → name → leave "share my chat" ticked → **Request a doctor** (still no login). Doctor laptop, online under the green **Verified Doctor** banner, beeps and shows the patient **with the chat they shared**. Doctor: **Accept**. |
 | 2:30–3:30 | Both | Live video call. Point at **"Verified Doctor · Dr. …"** on the patient's screen. Show **Mute** and **Camera off**. The doctor reads the shared chat on the side panel, so the patient doesn't have to repeat themselves. Doctor: **End call**. |
-| 3:30–4:15 | Presenter | **Who is allowed to answer?** Admin tab → `/admin/` → **Approved**: the doctor's card with NMC number, citizenship and certificate. Then **Waiting for review**: a pharmacist or MBBS student application (student: doctor's letter of recommendation). Only approved professionals ever see a patient. Optional: patient taps **Sign in to save chats** → the conversation appears under **My chats**. |
+| 3:30–4:15 | Presenter | **Who is allowed to answer?** Admin tab → `/admin/` → **Approved**: the doctor's card with NMC number, citizenship and certificate. Then **Waiting for review**: a pharmacist, nurse, paramedic or MBBS student application (student: doctor's letter of recommendation). Only approved professionals ever see a patient. Optional: patient taps **Sign in to save chats** → the conversation appears under **My chats**. |
 | 4:15–5:00 | Presenter | **How it works:** Next.js PWA + FastAPI + Postgres; Google sign-in; MedGemma on a cloud GPU; WebRTC peer-to-peer with a TURN relay. **Honest limits:** first-aid information, not diagnosis; verification is a manual document check. **Next:** link to the council registers, offline first-aid library, Nepali voice. |
 
 ## Checklist
 
 **The day before**
 - [ ] The demo doctor's Google account has applied and the admin has **approved** it
-- [ ] One more application (pharmacist or MBBS student) is left **pending**, to show on the admin page
+- [ ] One more application (a nurse or paramedic shows the new roles best) is left **pending**, to show on the admin page
 - [ ] `python scripts/smoke_test.py <URL> --pro-session <cookie>` prints `ALL GOOD` (see deployment.md §7)
 - [ ] One real call between two laptops on **different networks** (Wi-Fi + phone hotspot)
 - [ ] Try the exact demo sentences on the real model and check the replies are sensible, in both languages
@@ -50,15 +50,17 @@ laptop is signed in as the **admin**, for the trust beat.
 
 ## Likely judge questions
 
-- **"Can anyone sign up as a doctor?"** No. Every doctor, pharmacist and
-  MBBS student uploads their citizenship certificate and their council
-  registration (NMC or Nepal Pharmacy Council), or for students a doctor's
-  letter of recommendation. An admin checks each one by hand against the
+- **"Can anyone sign up as a doctor?"** No. Every doctor, pharmacist,
+  nurse, paramedic and MBBS student uploads their citizenship certificate
+  and their council registration (Nepal Medical, Pharmacy, Nursing or
+  Health Professional Council), or for students a doctor's letter of
+  recommendation. An admin checks each one by hand against the
   council register. Until approved they can't see patients, and the server
   enforces it on every request, not just the UI.
 - **"Why should a patient trust who answers?"** The call shows the
   professional's verified role and name: "Verified Doctor", "Verified
-  Pharmacist" or "Verified MBBS Student".
+  Pharmacist", "Verified Nurse", "Verified Paramedic" or "Verified MBBS
+  Student".
 - **"Does a patient need an account?"** Never for help. Signing in only
   saves their chats. In an emergency, nothing asks them to log in.
 - **"What about the documents?"** Stored only to verify the applicant,

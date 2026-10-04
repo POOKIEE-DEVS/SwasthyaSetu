@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from sqlalchemy import Column, LargeBinary, Text
 from sqlmodel import Field, SQLModel
 
-PROFESSIONAL_ROLES = ("doctor", "pharmacist", "student")
+PROFESSIONAL_ROLES = ("doctor", "pharmacist", "nurse", "paramedic", "student")
 ROLES = ("patient", *PROFESSIONAL_ROLES)
 
 
@@ -35,7 +35,7 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True, index=True, max_length=320)
     name: str = Field(max_length=120)
     picture_url: str | None = Field(default=None, max_length=1000)
-    # patient | doctor | pharmacist | student. None until chosen after the
+    # patient, or one of PROFESSIONAL_ROLES. None until chosen after the
     # first sign-in. Admin access is not a role: see ADMIN_EMAILS.
     role: str | None = Field(default=None, max_length=20)
     created_at: datetime = Field(default_factory=utcnow)
@@ -63,13 +63,14 @@ class Application(SQLModel, table=True):
     user_id: int = Field(
         foreign_key="users.id", unique=True, index=True, ondelete="CASCADE"
     )
-    role: str = Field(max_length=20)  # doctor | pharmacist | student
+    role: str = Field(max_length=20)  # one of PROFESSIONAL_ROLES
     full_name: str = Field(max_length=120)
     phone: str = Field(max_length=20)
     citizenship_number: str = Field(max_length=40)
     citizenship_district: str = Field(max_length=60)
-    # Nepal Medical Council number (doctor) or Nepal Pharmacy Council
-    # number (pharmacist).
+    # The council registration number: Nepal Medical Council (doctor),
+    # Nepal Pharmacy Council (pharmacist), Nepal Nursing Council (nurse) or
+    # Nepal Health Professional Council (paramedic).
     council_number: str | None = Field(default=None, max_length=40)
     # MBBS students: their college, and the doctor recommending them.
     institution: str | None = Field(default=None, max_length=160)

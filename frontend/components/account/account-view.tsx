@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  Ambulance,
   BadgeCheck,
   GraduationCap,
   HeartPulse,
@@ -12,6 +13,7 @@ import {
   Pill,
   ShieldCheck,
   Stethoscope,
+  Syringe,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,6 +47,18 @@ const ROLE_CHOICES: {
     icon: Pill,
     nepali: "फार्मासिस्ट",
     description: "Needs your Nepal Pharmacy Council number.",
+  },
+  {
+    role: "nurse",
+    icon: Syringe,
+    nepali: "नर्स",
+    description: "Needs your Nepal Nursing Council number.",
+  },
+  {
+    role: "paramedic",
+    icon: Ambulance,
+    nepali: "प्यारामेडिक",
+    description: "Needs your Nepal Health Professional Council number.",
   },
   {
     role: "student",
@@ -206,7 +220,8 @@ export function AccountView() {
             </Link>
             .
             <br />
-            Doctors, pharmacists and MBBS students: sign in to apply for verification.
+            Doctors, pharmacists, nurses, paramedics and MBBS students: sign in to apply for
+            verification.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">

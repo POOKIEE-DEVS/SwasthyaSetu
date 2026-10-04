@@ -40,7 +40,7 @@ const en = {
       },
       {
         title: "Connect when more help is needed",
-        body: "A verified doctor, pharmacist or MBBS student joins you on a video call.",
+        body: "A verified doctor, pharmacist, nurse, paramedic or MBBS student joins you on a video call.",
       },
     ],
     cta: "Get first-aid help",
@@ -56,6 +56,14 @@ const en = {
       {
         who: "Pharmacist",
         needs: "Nepal Pharmacy Council registration and certificate",
+      },
+      {
+        who: "Nurse",
+        needs: "Nepal Nursing Council registration and certificate",
+      },
+      {
+        who: "Paramedic",
+        needs: "Nepal Health Professional Council registration and certificate",
       },
       {
         who: "MBBS student",
@@ -139,7 +147,7 @@ const ne: Copy = {
       },
       {
         title: "थप सहयोग चाहिँदा जोडिनुहोस्",
-        body: "प्रमाणित डाक्टर, फार्मासिस्ट वा MBBS विद्यार्थी भिडियो कलमा जोडिनुहुन्छ।",
+        body: "प्रमाणित डाक्टर, फार्मासिस्ट, नर्स, प्यारामेडिक वा MBBS विद्यार्थी भिडियो कलमा जोडिनुहुन्छ।",
       },
     ],
     cta: "प्राथमिक उपचार सहयोग लिनुहोस्",
@@ -155,6 +163,14 @@ const ne: Copy = {
       {
         who: "फार्मासिस्ट",
         needs: "नेपाल फार्मेसी काउन्सिलको दर्ता र प्रमाणपत्र",
+      },
+      {
+        who: "नर्स",
+        needs: "नेपाल नर्सिङ काउन्सिलको दर्ता र प्रमाणपत्र",
+      },
+      {
+        who: "प्यारामेडिक",
+        needs: "नेपाल स्वास्थ्य व्यवसायी परिषद्को दर्ता र प्रमाणपत्र",
       },
       {
         who: "MBBS विद्यार्थी",

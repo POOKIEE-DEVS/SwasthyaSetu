@@ -56,7 +56,7 @@ export function useAuth() {
   };
 }
 
-const PROFESSIONAL: ProfessionalRole[] = ["doctor", "pharmacist", "student"];
+const PROFESSIONAL: ProfessionalRole[] = ["doctor", "pharmacist", "nurse", "paramedic", "student"];
 
 export function isProfessional(role: User["role"]): role is ProfessionalRole {
   return role !== null && (PROFESSIONAL as string[]).includes(role);

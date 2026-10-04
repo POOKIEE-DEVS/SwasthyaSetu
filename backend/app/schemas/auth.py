@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 from app.schemas.verification import VerificationSummary
 
-Role = Literal["patient", "doctor", "pharmacist", "student"]
+Role = Literal["patient", "doctor", "pharmacist", "nurse", "paramedic", "student"]
 
 
 class UserPublic(BaseModel):

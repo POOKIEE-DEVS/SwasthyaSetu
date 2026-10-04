@@ -3,8 +3,8 @@
 *The bridge to health* · स्वास्थ्य सेतु · Built by team **Pookiedevs**.
 
 First-aid guidance from an AI assistant, and a live video call with a
-**verified** doctor, pharmacist or MBBS student, for communities where medical
-help is far away.
+**verified** doctor, pharmacist, nurse, paramedic or MBBS student, for
+communities where medical help is far away.
 
 **The demo flow:**
 
@@ -27,8 +27,10 @@ help is far away.
 - **Google sign-in.** Optional for patients (it keeps their chats under "My
   chats"); required for professionals.
 - **Professional verification (KYC).** Doctors submit their Nepal Medical
-  Council number, pharmacists their Nepal Pharmacy Council number, and MBBS
-  students a doctor's letter of recommendation; everyone uploads their
+  Council number, pharmacists their Nepal Pharmacy Council number, nurses
+  their Nepal Nursing Council number, paramedics their Nepal Health
+  Professional Council number, and MBBS students a doctor's letter of
+  recommendation; everyone uploads their
   citizenship certificate. An admin reviews every application by hand. Only
   approved professionals can see waiting patients or take calls.
 

@@ -4,6 +4,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from app.schemas.verification import ProfessionalRole
+
 
 class IceServer(BaseModel):
     """One entry of RTCPeerConnection's ``iceServers`` option."""
@@ -21,10 +23,11 @@ class ConsultationCreate(BaseModel):
 
 
 class ProfessionalBadge(BaseModel):
-    """Who accepted the call, shown to the patient as "Verified Doctor"."""
+    """Who accepted the call, shown to the patient as "Verified Doctor"
+    (or Nurse, Paramedic, ...)."""
 
     name: str
-    role: Literal["doctor", "pharmacist", "student"]
+    role: ProfessionalRole
 
 
 class ConsultationPublic(BaseModel):

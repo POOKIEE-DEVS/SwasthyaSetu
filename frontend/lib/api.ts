@@ -23,7 +23,7 @@ export type IceServer = {
   credential?: string | null;
 };
 
-export type ProfessionalRole = "doctor" | "pharmacist" | "student";
+export type ProfessionalRole = "doctor" | "pharmacist" | "nurse" | "paramedic" | "student";
 export type Role = "patient" | ProfessionalRole;
 
 export type ProfessionalBadge = { name: string; role: ProfessionalRole };
@@ -223,5 +223,7 @@ export const ROLE_LABEL: Record<Role, string> = {
   patient: "Patient",
   doctor: "Doctor",
   pharmacist: "Pharmacist",
+  nurse: "Nurse",
+  paramedic: "Paramedic",
   student: "MBBS Student",
 };

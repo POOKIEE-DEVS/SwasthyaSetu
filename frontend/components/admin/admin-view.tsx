@@ -32,6 +32,14 @@ const TABS: { status: VerificationStatus; label: string }[] = [
   { status: "rejected", label: "Rejected" },
 ];
 
+/** Which council number each registered profession gave. */
+const COUNCIL_LABEL = {
+  doctor: "NMC number",
+  pharmacist: "Pharmacy Council number",
+  nurse: "Nursing Council number",
+  paramedic: "Health Professional Council number",
+} as const;
+
 function when(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleString(undefined, {
     dateStyle: "medium",
@@ -61,8 +69,7 @@ function ApplicationCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const a = application;
-  const councilLabel =
-    a.role === "doctor" ? "NMC number" : a.role === "pharmacist" ? "Pharmacy Council number" : null;
+  const councilLabel = a.role === "student" ? null : COUNCIL_LABEL[a.role];
 
   const act = async (action: () => Promise<unknown>) => {
     setBusy(true);

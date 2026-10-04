@@ -4,7 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-ProfessionalRole = Literal["doctor", "pharmacist", "student"]
+# Everyone who may answer a patient, once verified.
+ProfessionalRole = Literal["doctor", "pharmacist", "nurse", "paramedic", "student"]
 VerificationStatus = Literal["pending", "approved", "rejected"]
 DocumentKind = Literal[
     "citizenship_front",

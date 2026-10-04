@@ -36,8 +36,8 @@ function Notice({
 }
 
 /**
- * The professional area is for verified doctors, pharmacists and MBBS
- * students only. Everyone else sees where they stand and what to do next.
+ * The professional area is for verified doctors, pharmacists, nurses,
+ * paramedics and MBBS students only. Everyone else sees where they stand and what to do next.
  * The server enforces the same rule on every request; this is the
  * friendly version of it.
  */
@@ -77,7 +77,8 @@ export function ProfessionalGate({ children }: { children: React.ReactNode }) {
           </Button>
         }
       >
-        Verified doctors, pharmacists and MBBS students take video calls from patients here.
+        Verified doctors, pharmacists, nurses, paramedics and MBBS students take video calls
+        from patients here.
         Sign in to apply, or to go online if you are already verified.
       </Notice>
     );
@@ -102,8 +103,8 @@ export function ProfessionalGate({ children }: { children: React.ReactNode }) {
           </Button>
         }
       >
-        This area is for doctors, pharmacists and MBBS students whose documents have been
-        checked. It takes a few minutes to apply.
+        This area is for doctors, pharmacists, nurses, paramedics and MBBS students whose
+        documents have been checked. It takes a few minutes to apply.
       </Notice>
     );
   }
