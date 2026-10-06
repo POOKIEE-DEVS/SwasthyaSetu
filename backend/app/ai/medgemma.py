@@ -74,7 +74,10 @@ class MedGemmaClient:
             ) from exc
 
         if not reply:
-            raise ModelUnavailableError("The AI model returned an empty reply.")
+            raise ModelUnavailableError(
+                "The assistant couldn't finish an answer. Please try again, "
+                "or press Talk to a professional."
+            )
         return reply
 
 

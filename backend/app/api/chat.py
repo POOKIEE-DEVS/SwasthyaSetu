@@ -6,7 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.concurrency import run_in_threadpool
 
 from app.ai.medgemma import ModelUnavailableError, medgemma
-from app.ai.prompts import build_model_messages, is_urgent
+from app.ai.prompts import (
+    build_model_messages,
+    is_off_topic,
+    is_urgent,
+    off_topic_reply,
+)
 from app.api.deps import optional_user
 from app.core.config import settings
 from app.models import User
@@ -45,14 +50,20 @@ async def chat(
         )
 
     urgent = is_urgent(latest.content)
-    model_messages = build_model_messages(
-        body.messages, max_messages=settings.chat_max_history_messages
-    )
-
-    try:
-        reply = await medgemma.generate(model_messages)
-    except ModelUnavailableError as exc:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
+    if is_off_topic(latest.content):
+        # Plainly not about health: a fixed answer, and the model never sees
+        # it (see is_off_topic; anything health-related or urgent goes on).
+        reply = off_topic_reply(latest.content)
+    else:
+        model_messages = build_model_messages(
+            body.messages, max_messages=settings.chat_max_history_messages
+        )
+        try:
+            reply = await medgemma.generate(model_messages)
+        except ModelUnavailableError as exc:
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)
+            ) from exc
 
     chat_id = None
     if user is not None and user.id is not None:

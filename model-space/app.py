@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 
 # On ZeroGPU, `spaces` must be imported before torch. Elsewhere its decorator
 # is a no-op, and off Hugging Face it is not installed at all.
@@ -47,9 +48,13 @@ MOCK = os.environ.get("SWASTHYA_MOCK_MODEL") == "1"
 ALLOW_THINKING = os.environ.get("ALLOW_THINKING") == "1"
 
 # MedGemma 1.5 may think first: <unused94>thought ... <unused95>, then the
-# reply. Starting the model's turn with an empty thought skips the thinking.
+# reply. Starting the model's turn with an empty thought skips the thinking,
+# and the thought-start token is also banned from the output, so the model
+# can't open a second thought block mid-reply.
 THOUGHT_START, THOUGHT_END = "<unused94>", "<unused95>"
 EMPTY_THOUGHT = f"{THOUGHT_START}thought\n{THOUGHT_END}"
+# Chat-template tokens that may trail the reply once decoded.
+CHAT_TOKENS_RE = re.compile(r"<(?:end_of_turn|start_of_turn|eos|bos|pad)>")
 
 UI_SYSTEM_PROMPT = (
     "You are a first-aid assistant for people in Nepal. Reply in the user's "
@@ -144,8 +149,11 @@ def run_model(messages: list[dict]) -> str:
     prompt = processor.apply_chat_template(
         messages, add_generation_prompt=True, tokenize=False
     )
+    extra = {}
     if not ALLOW_THINKING:
         prompt += EMPTY_THOUGHT
+        thought_id = processor.tokenizer.convert_tokens_to_ids(THOUGHT_START)
+        extra["bad_words_ids"] = [[thought_id]]
     # The template already starts with <bos>; don't add a second one.
     inputs = processor.tokenizer(
         prompt, return_tensors="pt", add_special_tokens=False
@@ -153,10 +161,12 @@ def run_model(messages: list[dict]) -> str:
     input_len = inputs["input_ids"].shape[-1]
     with torch.inference_mode():
         output = model.generate(
-            **inputs, max_new_tokens=MAX_NEW_TOKENS, do_sample=False
+            **inputs, max_new_tokens=MAX_NEW_TOKENS, do_sample=False, **extra
         )
-    text = processor.decode(output[0][input_len:], skip_special_tokens=True)
-    return strip_thinking(text)
+    # Keep special tokens while decoding: skipping them would delete the
+    # thought markers too, and a thought block would then read as the reply.
+    text = processor.decode(output[0][input_len:], skip_special_tokens=False)
+    return CHAT_TOKENS_RE.sub("", strip_thinking(text)).strip()
 
 
 def strip_thinking(text: str) -> str:
