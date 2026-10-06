@@ -37,18 +37,55 @@ communities where medical help is far away.
   the patient's name, the date and the length of each finished call. Each
   professional sees only their own record.
 
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+    P["Patient<br/>(no login)"] -- "HTTPS + WSS" --> R
+    D["Verified professional"] -- "HTTPS + WSS" --> R
+    A["Admin"] -- HTTPS --> R
+    subgraph R["Render · one Docker container · one process"]
+        FE["Next.js app (static)"]
+        API["FastAPI: API + WebSockets"]
+    end
+    API -- "gradio_client" --> M["MedGemma 1.5 4B<br/>Gradio on a GPU (Colab / HF Space)"]
+    API -- SQL --> DB[("Neon Postgres")]
+    API -- OAuth --> G["Google sign-in"]
+    P <-. "WebRTC video, peer to peer<br/>(STUN + TURN relay)" .-> D
+```
+
+- **First aid.** The chat goes to FastAPI, which:
+  - flags urgent words and shows the 102 banner;
+  - answers plainly off-topic requests with a fixed sentence;
+  - sends everything else to MedGemma with a short English or Nepali
+    prompt;
+  - cleans the reply (no "thinking", no diagnosis, no doses).
+- **Talk to a professional.** The request joins an in-memory queue, pushed
+  live over a WebSocket to verified professionals. A tone plays, the first
+  to accept wins, and the server relays the WebRTC handshake. Audio and
+  video then flow directly between the two browsers, or through a TURN
+  relay.
+- **Trust.** Google sign-in, documents checked by the admin, and the
+  server-side `require_professional` check on every request. The patient
+  sees "Verified Doctor · Dr. …".
+- **Hosting.** Everything runs in the cloud: Render (app), Neon (database),
+  Colab or a Hugging Face Space (GPU model), ExpressTURN (relay), Google
+  (sign-in). GitHub Actions checks every push.
+
+Full detail, with diagrams for the AI pipeline, the call sequence,
+verification and hosting: **[docs/architecture.md](docs/architecture.md)**.
+
 ## Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js (static export, installable PWA) · TypeScript · Tailwind CSS · shadcn/ui · Zustand |
-| Backend | Python · FastAPI · Uvicorn (serves the API, WebSockets, and the frontend from one origin) |
-| Data | Postgres (Neon) via SQLModel; SQLite for local development |
-| Auth | Google OAuth 2.0 (authorization code + PKCE), server-side sessions |
-| Real-time | Native FastAPI WebSockets · WebRTC with STUN/TURN (ExpressTURN or Cloudflare) |
-| AI | MedGemma 1.5 4B (`google/medgemma-1.5-4b-it`) on a Colab GPU or a Hugging Face GPU Space |
-
-How it fits together: [docs/architecture.md](docs/architecture.md).
+| Frontend | Next.js 16 (static export, installable PWA) · TypeScript · Tailwind CSS v4 · shadcn/ui · Zustand · StringTune (motion) |
+| Backend | Python · FastAPI · Uvicorn, **one process** (serves the API, WebSockets and the frontend from one origin) |
+| AI | MedGemma 1.5 4B (`google/medgemma-1.5-4b-it`, Transformers, bfloat16) in a Gradio app on a GPU: Colab T4 or a Hugging Face Space |
+| Data | Postgres (Neon) via SQLModel and psycopg 3; SQLite for local development |
+| Auth | Google OAuth 2.0 (authorization code + PKCE), HttpOnly session cookie stored hashed |
+| Real-time | FastAPI WebSockets (live queue + call signalling) · WebRTC with STUN and TURN (ExpressTURN or Cloudflare) |
+| Hosting | One Docker image on Render · Neon · Colab or HF Spaces · GitHub Actions CI |
 
 ## Run it locally
 
