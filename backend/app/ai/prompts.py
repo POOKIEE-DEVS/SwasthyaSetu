@@ -18,30 +18,46 @@ OFF_TOPIC_REPLY_NE = (
     "कसैको ज्यान जोखिममा छ भने 102 मा फोन गर्नुहोस्।"
 )
 
-# Short on purpose. A longer list of rules made the 4B model start planning
-# out loud ("I should ... Plan: 1. Acknowledge") instead of answering.
-SYSTEM_PROMPT = """\
-You are SwasthyaSetu, a first-aid assistant for people in Nepal who may be far \
-from medical help.
+# The instruction the model gets, as a few plain sentences. Written as a
+# rules list, or with a reminder appended to the patient's message, the 4B
+# model treated it as a task to analyse ("The user has asked ... Identify the
+# core question ... Plan: ...") and that analysis became the reply. Plain
+# prose, like the prompt on the Space's own test page, gets plain answers.
+SYSTEM_PROMPT_EN = (
+    "You are SwasthyaSetu, a first-aid assistant for people in Nepal. Reply in "
+    "English. Give short, practical first-aid steps as a numbered list, under "
+    "180 words. Do not diagnose and never give medicine doses. For anything "
+    "life-threatening, first tell them to call 102 for an ambulance and to "
+    'press "Talk to a professional". You only help with health, illness, '
+    "injuries and first aid; for anything else, say in one sentence that you "
+    "can only help with health and first-aid questions."
+)
 
-Rules:
-- Only answer questions about health, illness, injuries and first aid. For \
-anything else, say in one sentence that you can only help with health and \
-first-aid questions.
-- Reply in the same language the user writes in. If they write in Nepali, \
-reply in Nepali (Devanagari script). Otherwise reply in English.
-- Start straight away with the advice. Do not introduce yourself or repeat \
-the question back.
-- Give practical first-aid steps as a short numbered list. Keep the whole \
-reply under 180 words.
-- You do not diagnose. Say what the symptoms *may* suggest and what to do next.
-- Never give medicine doses.
-- If anything sounds life-threatening (chest pain, trouble breathing, heavy \
-bleeding, unconsciousness, seizures, stroke signs, severe burns, poisoning), \
-start your reply by telling them to call 102 for an ambulance and to press \
-"Talk to a professional" now.
-- For anything that is not getting better, recommend talking to a doctor.
-"""
+# For a message in Nepali the instruction itself is in Nepali: that steers
+# the reply into Nepali without asking the model to "translate", which it
+# then plans out loud.
+SYSTEM_PROMPT_NE = (
+    "तपाईं स्वास्थ्य सेतु हुनुहुन्छ, नेपालका मानिसहरूका लागि प्राथमिक उपचार "
+    "सहायक। सधैं नेपाली भाषामा, देवनागरी लिपिमा जवाफ दिनुहोस्। अहिले के गर्ने "
+    "भन्ने छोटा, व्यावहारिक प्राथमिक उपचारका कदमहरू नम्बर लगाएर दिनुहोस्। रोग "
+    "निदान नगर्नुहोस् र औषधिको मात्रा कहिल्यै नबताउनुहोस्। ज्यान जोखिममा देखिए "
+    'सबैभन्दा पहिले 102 मा एम्बुलेन्स बोलाउन र "स्वास्थ्यकर्मीसँग कुरा '
+    'गर्नुहोस्" थिच्न भन्नुहोस्। स्वास्थ्यसँग सम्बन्धित नभएका प्रश्नमा, तपाईं '
+    "स्वास्थ्य र प्राथमिक उपचारमा मात्र सहयोग गर्न सक्नुहुन्छ भनेर एक वाक्यमा "
+    "भन्नुहोस्।"
+)
+
+# Kept for the tests and anything that wants "the" prompt.
+SYSTEM_PROMPT = SYSTEM_PROMPT_EN
+
+# Word for word the prompt of the Space's test page, which answers well. Used
+# for one retry when a reply still comes back as the model's own analysis.
+FALLBACK_SYSTEM_PROMPT = (
+    "You are a first-aid assistant for people in Nepal. Reply in the user's "
+    "language (English or Nepali). Give short, practical first-aid steps. Do "
+    "not diagnose and never give medicine doses. For anything life-threatening, "
+    "tell them to call 102 for an ambulance first."
+)
 
 # Keyword check for obvious emergencies. It is deliberately crude and
 # conservative: its only job is to surface the "call 102 / talk to a doctor"
@@ -133,14 +149,6 @@ def strip_preamble(text: str) -> str:
 
 _DEVANAGARI_RE = re.compile(r"[\u0900-\u097F]")  # Devanagari block
 
-# Appended to the latest user turn only in what the model sees. A small model
-# follows a reminder at the end of the prompt far more reliably than the
-# language rule in the system prompt. Kept to the language alone: a longer
-# reminder gets recited back as a preamble.
-NEPALI_REMINDER = "(नेपालीमा, देवनागरी लिपिमा जवाफ दिनुहोस्। Reply in Nepali.)"
-ENGLISH_REMINDER = "(Reply in English.)"
-
-
 def is_nepali(text: str) -> bool:
     return bool(_DEVANAGARI_RE.search(text))
 
@@ -150,10 +158,14 @@ def is_urgent(text: str) -> bool:
 
 
 def build_model_messages(
-    history: list[ChatMessage], *, max_messages: int
+    history: list[ChatMessage],
+    *,
+    max_messages: int,
+    system_prompt: str | None = None,
 ) -> list[dict[str, str]]:
     """System prompt plus the most recent turns, in a shape the Gemma chat
     template accepts: starting with a user turn and strictly alternating.
+    The prompt follows the language of the latest message unless given.
     """
     recent = history[-max_messages:]
 
@@ -169,12 +181,11 @@ def build_model_messages(
         else:
             merged.append({"role": message.role, "content": message.content})
 
-    if merged and merged[-1]["role"] == "user":
-        last = merged[-1]["content"]
-        reminder = NEPALI_REMINDER if is_nepali(last) else ENGLISH_REMINDER
-        merged[-1] = {"role": "user", "content": last + "\n\n" + reminder}
-
-    return [{"role": "system", "content": SYSTEM_PROMPT}, *merged]
+    if system_prompt is None:
+        latest = merged[-1]["content"] if merged else ""
+        system_prompt = SYSTEM_PROMPT_NE if is_nepali(latest) else SYSTEM_PROMPT_EN
+    # The patient's words go to the model exactly as written.
+    return [{"role": "system", "content": system_prompt}, *merged]
 
 
 # --- Off-topic requests ------------------------------------------------------
@@ -244,3 +255,31 @@ def is_off_topic(text: str) -> bool:
 
 def off_topic_reply(text: str) -> str:
     return OFF_TOPIC_REPLY_NE if is_nepali(text) else OFF_TOPIC_REPLY_EN
+
+
+# --- Leaked analysis -----------------------------------------------------------
+# Sometimes the model answers with its working instead of the answer: "The
+# user has asked ... 1. Identify the core question 2. Assess urgency 3.
+# Formulate advice 4. Translate to Nepali". Such a reply is never shown; the
+# chat endpoint retries once with FALLBACK_SYSTEM_PROMPT.
+_REASONING_RE = re.compile(
+    "|".join(
+        [
+            r"\bthe user(?:'s)? (?:has )?(?:asked|request|is asking|wants|"
+            r"question|message|language|writes)\b",
+            r"\bidentify (?:the )?(?:core |main )?(?:question|issue|problem)\b",
+            r"\bassess (?:the )?(?:urgency|situation|severity)\b",
+            r"\bformulate (?:the )?(?:advice|response|answer|reply)\b",
+            r"\btranslate (?:it |this |the advice )?(?:in)?to (?:nepali|english)\b",
+            r"^\s*\**plan:?\**\s*$",
+            r"\bI should (?:start|begin|reply|respond|provide|tell|mention)\b",
+            r"\bmy (?:response|reply|answer) (?:should|will|must)\b",
+        ]
+    ),
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
+def looks_like_reasoning(reply: str) -> bool:
+    """True when a reply reads as the model's own analysis, not advice."""
+    return bool(_REASONING_RE.search(reply))

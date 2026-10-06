@@ -7,19 +7,49 @@ from fastapi.concurrency import run_in_threadpool
 
 from app.ai.medgemma import ModelUnavailableError, medgemma
 from app.ai.prompts import (
+    FALLBACK_SYSTEM_PROMPT,
     build_model_messages,
     is_off_topic,
     is_urgent,
+    looks_like_reasoning,
     off_topic_reply,
 )
 from app.api.deps import optional_user
 from app.core.config import settings
 from app.models import User
-from app.schemas.chat import ChatRequest, ChatResponse
+from app.schemas.chat import ChatMessage, ChatRequest, ChatResponse
 from app.services import chat_rate_limiter, chats
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["chat"])
+
+
+async def ask_model(history: list[ChatMessage]) -> str:
+    """The model's reply, never its analysis.
+
+    If the reply reads as the model working through the question ("The user
+    has asked ... Plan: ..."), ask once more with the Space test page's prompt
+    and only the latest message. Different input, so a different answer even
+    with greedy decoding. If that is analysis too, fail with the friendly
+    "couldn't finish an answer" message rather than show it.
+    """
+    reply = await medgemma.generate(
+        build_model_messages(history, max_messages=settings.chat_max_history_messages)
+    )
+    if not looks_like_reasoning(reply):
+        return reply
+    logger.warning("model replied with its analysis; retrying with the fallback prompt")
+    retry = await medgemma.generate(
+        build_model_messages(
+            history[-1:], max_messages=1, system_prompt=FALLBACK_SYSTEM_PROMPT
+        )
+    )
+    if looks_like_reasoning(retry):
+        raise ModelUnavailableError(
+            "The assistant couldn't finish an answer. Please try again, "
+            "or press Talk to a professional."
+        )
+    return retry
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -55,11 +85,8 @@ async def chat(
         # it (see is_off_topic; anything health-related or urgent goes on).
         reply = off_topic_reply(latest.content)
     else:
-        model_messages = build_model_messages(
-            body.messages, max_messages=settings.chat_max_history_messages
-        )
         try:
-            reply = await medgemma.generate(model_messages)
+            reply = await ask_model(body.messages)
         except ModelUnavailableError as exc:
             raise HTTPException(
                 status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)

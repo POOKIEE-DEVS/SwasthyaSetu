@@ -7,9 +7,10 @@ from fastapi.testclient import TestClient
 
 from app.ai.medgemma import ModelUnavailableError, medgemma
 from app.ai.prompts import (
-    ENGLISH_REMINDER,
-    NEPALI_REMINDER,
+    FALLBACK_SYSTEM_PROMPT,
     SYSTEM_PROMPT,
+    SYSTEM_PROMPT_EN,
+    SYSTEM_PROMPT_NE,
     build_model_messages,
     is_urgent,
     strip_thinking,
@@ -32,11 +33,9 @@ def test_chat_returns_model_reply(client: TestClient, fake_model: list) -> None:
         "chat_id": None,  # guests: nothing is saved
     }
     sent = fake_model[0]
-    assert sent[0] == {"role": "system", "content": SYSTEM_PROMPT}
-    assert sent[-1] == {
-        "role": "user",
-        "content": "I cut my finger\n\n" + ENGLISH_REMINDER,
-    }
+    assert sent[0] == {"role": "system", "content": SYSTEM_PROMPT_EN}
+    # The patient's words reach the model exactly as written.
+    assert sent[-1] == {"role": "user", "content": "I cut my finger"}
 
 
 def test_urgent_message_is_flagged(client: TestClient, fake_model: list) -> None:
@@ -119,7 +118,7 @@ def test_history_is_trimmed_and_alternates() -> None:
     assert roles[0] == "system"
     assert roles[1] == "user"  # leading assistant turn dropped after trimming
     assert all(a != b for a, b in pairwise(roles[1:]))
-    assert messages[-1]["content"] == "latest\n\n" + ENGLISH_REMINDER
+    assert messages[-1]["content"] == "latest"
     assert len(messages) <= 5
 
 
@@ -139,12 +138,14 @@ def test_reply_language_follows_latest_message() -> None:
         ChatMessage(role="user", content="मेरो बुबाको छाती दुख्यो"),
     ]
     messages = build_model_messages(history, max_messages=8)
-    assert messages[-1]["content"].endswith(NEPALI_REMINDER)
-    # Only the latest turn carries the reminder.
+    # A Nepali message gets the instruction written in Nepali, and nothing
+    # is added to anyone's message.
+    assert messages[0]["content"] == SYSTEM_PROMPT_NE
+    assert messages[-1]["content"] == "मेरो बुबाको छाती दुख्यो"
     assert messages[1]["content"] == "I burned my hand"
 
     english = build_model_messages(history[:1], max_messages=8)
-    assert english[-1]["content"].endswith(ENGLISH_REMINDER)
+    assert english[0]["content"] == SYSTEM_PROMPT_EN
 
 
 @pytest.mark.parametrize(
@@ -209,11 +210,16 @@ def test_a_thought_block_that_lost_its_markers_is_never_shown() -> None:
     assert strip_thinking(leaked) == ""
 
 
-def test_system_prompt_stays_short_and_names_the_real_button() -> None:
-    assert "Only answer questions about health" in SYSTEM_PROMPT
-    assert '"Talk to a professional"' in SYSTEM_PROMPT
-    # Long rule lists made the small model plan out loud instead of answering.
-    assert len(SYSTEM_PROMPT) < 1600
+def test_prompts_are_short_plain_prose() -> None:
+    # A rules list made the small model plan out loud instead of answering.
+    for prompt in (SYSTEM_PROMPT_EN, SYSTEM_PROMPT_NE, FALLBACK_SYSTEM_PROMPT):
+        assert "\n-" not in prompt and "Rules" not in prompt
+        assert len(prompt) < 800
+        assert "102" in prompt
+    assert SYSTEM_PROMPT == SYSTEM_PROMPT_EN
+    assert "only help with health" in SYSTEM_PROMPT_EN
+    assert '"Talk to a professional"' in SYSTEM_PROMPT_EN
+    assert "नेपाली भाषामा" in SYSTEM_PROMPT_NE
 
 
 @pytest.mark.parametrize(
@@ -269,3 +275,74 @@ def test_off_topic_gets_the_fixed_answer_without_the_model(
     assert nepali.json()["reply"] == OFF_TOPIC_REPLY_NE
     assert fake_model == []  # the model was never called
     assert "102" in OFF_TOPIC_REPLY_EN and "102" in OFF_TOPIC_REPLY_NE
+
+
+# Both seen live: the model's working instead of an answer.
+ANALYSIS_EN = (
+    "If anything sounds life-threatening, I should start my reply by telling "
+    "them to call 102.\n\nThe user's request is: \"Someone fell\"\n\nPlan:\n"
+    "1.  Acknowledge"
+)
+ANALYSIS_NE = (
+    'The user has asked: "मौरीले टोक्यो". This translates to "Mosquito bite".\n\n'
+    "1.  **Identify the core question:** The user is asking about a bite.\n"
+    "2.  **Assess urgency:** Not life-threatening.\n"
+    "3.  **Formulate advice:** Clean the area.\n"
+    "4.  **Translate to Nepali (Devanagari):** ..."
+)
+
+
+@pytest.mark.parametrize("reply", [ANALYSIS_EN, ANALYSIS_NE])
+def test_analysis_is_recognised(reply: str) -> None:
+    from app.ai.prompts import looks_like_reasoning
+
+    assert looks_like_reasoning(reply)
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [
+        "1. Help them sit down.\n2. Raise the ankle.\n3. Cool it with ice.",
+        "Call 102 now. Then press Talk to a professional.\n\n1. Keep them still.",
+        "१. टोकेको ठाउँ साबुन पानीले धुनुहोस्।\n२. चिसो कपडा राख्नुहोस्।",
+        "I can only help with health and first-aid questions.",
+    ],
+)
+def test_real_advice_is_not_mistaken_for_analysis(reply: str) -> None:
+    from app.ai.prompts import looks_like_reasoning
+
+    assert not looks_like_reasoning(reply)
+
+
+def test_analysis_is_retried_once_with_the_fallback_prompt(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[list[dict[str, str]]] = []
+    replies = [ANALYSIS_NE, "१. टोकेको ठाउँ धुनुहोस्।"]
+
+    async def generate(messages: list[dict[str, str]]) -> str:
+        calls.append(messages)
+        return replies[len(calls) - 1]
+
+    monkeypatch.setattr(medgemma, "generate", generate)
+    body = client.post("/api/v1/chat", json=say("मौरीले टोक्यो")).json()
+
+    assert body["reply"] == "१. टोकेको ठाउँ धुनुहोस्।"
+    assert len(calls) == 2
+    assert calls[1] == [
+        {"role": "system", "content": FALLBACK_SYSTEM_PROMPT},
+        {"role": "user", "content": "मौरीले टोक्यो"},
+    ]
+
+
+def test_analysis_is_never_shown(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def generate(messages: list[dict[str, str]]) -> str:
+        return ANALYSIS_EN
+
+    monkeypatch.setattr(medgemma, "generate", generate)
+    response = client.post("/api/v1/chat", json=say("Someone fell"))
+
+    assert response.status_code == 503
+    assert "couldn't finish an answer" in response.json()["detail"]
