@@ -1,12 +1,17 @@
 package api
 
 import (
+	"context"
+	"net/http"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/coder/websocket"
 
+	"github.com/POOKIEE-DEVS/SwasthyaSetu/backend/internal/config"
 	"github.com/POOKIEE-DEVS/SwasthyaSetu/backend/internal/realtime"
 )
 
@@ -206,5 +211,32 @@ func TestShutdownTellsSocketsToReconnect(t *testing.T) {
 	c.e.server.Shutdown()
 	if code := closeCode(t, queue); code != websocket.StatusGoingAway {
 		t.Fatalf("close code %d", code)
+	}
+}
+
+func TestWebSocketOrigins(t *testing.T) {
+	e := newEnv(t, withConfig(func(cfg *config.Config) { cfg.PublicURL = "https://swasthya.example" }))
+	c := e.client()
+	dial := func(origin string) error {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		header := http.Header{}
+		header.Set("Origin", origin)
+		conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(e.http.URL, "http")+"/ws/consultations/x?token=y",
+			&websocket.DialOptions{HTTPClient: c.http, HTTPHeader: header})
+		if err == nil {
+			_ = conn.CloseNow()
+		}
+		return err
+	}
+	// The site's own pages, the public URL and the dev frontend may connect.
+	for _, origin := range []string{e.http.URL, "https://swasthya.example", "http://localhost:3000"} {
+		if err := dial(origin); err != nil {
+			t.Errorf("%s: %v", origin, err)
+		}
+	}
+	// Another site's page may not.
+	if err := dial("https://evil.example"); err == nil {
+		t.Error("a foreign origin was accepted")
 	}
 }

@@ -41,8 +41,9 @@ type Server struct {
 	google   *auth.Google
 	web      *staticSite // nil when there is no built frontend
 	started  time.Time
-	// Hosts whose pages may open our WebSockets besides our own (the
-	// CORS origins, for `next dev`).
+	// Hosts whose pages may open our WebSockets besides the request's own
+	// host: the public URL (in case a proxy changes the Host header) and
+	// the CORS origins (for `next dev`).
 	wsOrigins []string
 }
 
@@ -62,7 +63,7 @@ func New(cfg *config.Config, db *database.DB, model ai.Generator, log *slog.Logg
 		google:   auth.NewGoogle(cfg.GoogleClientID, cfg.GoogleClientSecret),
 		started:  time.Now(),
 	}
-	for _, origin := range cfg.CORSOrigins {
+	for _, origin := range append([]string{cfg.PublicURL}, cfg.CORSOrigins...) {
 		if u, err := url.Parse(origin); err == nil && u.Host != "" {
 			s.wsOrigins = append(s.wsOrigins, u.Host)
 		}
