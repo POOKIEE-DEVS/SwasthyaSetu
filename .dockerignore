@@ -10,7 +10,6 @@ frontend/out
 **/.env
 **/.env.*
 !**/.env.example
-backend/tests
 docs
 model-space
 scripts

@@ -2,38 +2,45 @@
 # `make help` lists everything.
 
 .DEFAULT_GOAL := help
-.PHONY: help install dev-backend dev-frontend serve test lint format check up smoke
+.PHONY: help install dev-backend dev-frontend serve test test-postgres lint format check up smoke
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
-install: ## Install backend and frontend dependencies
-	cd backend && python -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
+install: ## Download backend modules and install frontend dependencies
+	cd backend && go mod download
 	cd frontend && npm install
 
-dev-backend: ## API on :8000 with reload (reads backend/.env)
-	cd backend && .venv/bin/uvicorn app.main:app --reload --port 8000
+dev-backend: ## API on :8000 (reads backend/.env)
+	cd backend && go run ./cmd/server
 
 dev-frontend: ## Frontend on :3000 with hot reload (needs frontend/.env.local)
 	cd frontend && npm run dev
 
 serve: ## Production-like: build the frontend, serve everything from :8000
 	cd frontend && npm run build
-	cd backend && STATIC_DIR=../frontend/out .venv/bin/uvicorn app.main:app --port 8000
+	cd backend && STATIC_DIR=../frontend/out go run ./cmd/server
 
-test: ## Backend tests
-	cd backend && .venv/bin/pytest
+test: ## Backend tests (SQLite)
+	cd backend && go test ./...
+
+test-postgres: ## Backend store and API tests against Postgres: make test-postgres DB=postgres://...
+	@test -n "$(DB)" || (echo 'Usage: make test-postgres DB=postgres://user:pw@host/db' && exit 1)
+	cd backend && TEST_DATABASE_URL=$(DB) go test ./internal/store/ ./internal/api/
 
 lint: ## Lint everything
-	cd backend && .venv/bin/ruff check app tests ../model-space ../scripts
+	cd backend && test -z "$$(gofmt -l .)" && go vet ./...
 	cd frontend && npm run lint && npm run typecheck
+	ruff check model-space scripts
 
-format: ## Format Python code
-	cd backend && .venv/bin/ruff format app tests ../model-space ../scripts
+format: ## Format Go and Python code
+	cd backend && gofmt -w .
+	ruff format model-space scripts
 
-check: lint test ## Everything CI runs (except the Docker job)
-	cd backend && .venv/bin/ruff format --check app tests ../model-space ../scripts
+check: lint test ## Everything CI runs (except Postgres and the Docker job)
+	cd backend && go test -race ./...
+	ruff format --check model-space scripts
 	cd frontend && npm run build
 
 up: ## Build and run the production Docker image on :8000

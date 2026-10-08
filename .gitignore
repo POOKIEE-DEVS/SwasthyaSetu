@@ -6,7 +6,12 @@
 **/.env.*
 !**/.env.example
 
-# Python
+# Go build output
+/backend/server
+/backend/server.exe
+/backend/bin/
+
+# Python (the model server and the smoke test)
 __pycache__/
 *.py[cod]
 .venv/

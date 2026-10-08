@@ -1,11 +1,13 @@
 # SwasthyaSetu: one image, one process, one origin.
 #
 #   Stage 1 builds the Next.js static export.
-#   Stage 2 is the FastAPI backend, which serves that export at "/" alongside
-#   the API (/api/v1) and WebSockets (/ws).
+#   Stage 2 builds the Go backend: one static binary, no runtime needed.
+#   Stage 3 runs that binary, which serves the export at "/" alongside the
+#   API (/api/v1) and WebSockets (/ws). The base image has no shell or
+#   package manager, and the server runs as a non-root user.
 #
-# Must run as a SINGLE uvicorn process: consultations and call rooms live in
-# memory, so a second worker would split them and calls would not connect.
+# Must run as a SINGLE process: consultations and call rooms live in memory,
+# so a second instance would split them and calls would not connect.
 
 FROM node:22-alpine AS web
 WORKDIR /web
@@ -16,25 +18,26 @@ COPY frontend/ ./
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-FROM python:3.12-slim
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PORT=8000 \
+FROM golang:1.26-alpine AS api
+WORKDIR /src
+COPY backend/go.mod backend/go.sum ./
+RUN go mod download
+COPY backend/ ./
+# CGO off: the SQLite driver is pure Go, so the binary needs no C library.
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/server
+
+# Includes CA certificates (HTTPS to Neon, Google, Hugging Face, Cloudflare).
+FROM gcr.io/distroless/static-debian12:nonroot
+ENV PORT=8000 \
     ENVIRONMENT=production \
     STATIC_DIR=/app/static \
     CORS_ORIGINS=""
 WORKDIR /app
-
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY backend/app ./app
-COPY --from=web /web/out ./static
-
-RUN useradd --no-create-home --shell /usr/sbin/nologin app && chown -R app:app /app
-USER app
-
+COPY --from=api /out/server /app/server
+COPY --from=web /web/out /app/static
+USER nonroot:nonroot
 EXPOSE 8000
-# --proxy-headers: trust the platform's X-Forwarded-For so per-client rate
-# limiting sees real client IPs, not the load balancer's.
-CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips='*'"]
+# No curl in the image: the binary checks its own /health.
+HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
+    CMD ["/app/server", "-healthcheck"]
+ENTRYPOINT ["/app/server"]
