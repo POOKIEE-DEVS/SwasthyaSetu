@@ -46,15 +46,15 @@ flowchart LR
     A["Admin"] -- HTTPS --> R
     subgraph R["Render · one Docker container · one process"]
         FE["Next.js app (static)"]
-        API["FastAPI: API + WebSockets"]
+        API["Go server: API + WebSockets"]
     end
-    API -- "gradio_client" --> M["MedGemma 1.5 4B<br/>Gradio on a GPU (Colab / HF Space)"]
+    API -- "Gradio HTTP API" --> M["MedGemma 1.5 4B<br/>Gradio on a GPU (Colab / HF Space)"]
     API -- SQL --> DB[("Neon Postgres")]
     API -- OAuth --> G["Google sign-in"]
     P <-. "WebRTC video, peer to peer<br/>(STUN + TURN relay)" .-> D
 ```
 
-- **First aid.** The chat goes to FastAPI, which:
+- **First aid.** The chat goes to the Go backend, which:
   - flags urgent words and shows the 102 banner;
   - answers plainly off-topic requests with a fixed sentence;
   - sends everything else to MedGemma with a short English or Nepali
@@ -66,7 +66,7 @@ flowchart LR
   video then flow directly between the two browsers, or through a TURN
   relay.
 - **Trust.** Google sign-in, documents checked by the admin, and the
-  server-side `require_professional` check on every request. The patient
+  server-side `requireProfessional` check on every request. The patient
   sees "Verified Doctor · Dr. …".
 - **Hosting.** Everything runs in the cloud: Render (app), Neon (database),
   Colab or a Hugging Face Space (GPU model), ExpressTURN (relay), Google
@@ -80,22 +80,20 @@ verification and hosting: **[docs/architecture.md](docs/architecture.md)**.
 | Layer | Technology |
 |---|---|
 | Frontend | Next.js 16 (static export, installable PWA) · TypeScript · Tailwind CSS v4 · shadcn/ui · Zustand · StringTune (motion) |
-| Backend | Python · FastAPI · Uvicorn, **one process** (serves the API, WebSockets and the frontend from one origin) |
+| Backend | **Go** (standard-library HTTP server, `coder/websocket`), **one process**, one static binary (serves the API, WebSockets and the frontend from one origin) |
 | AI | MedGemma 1.5 4B (`google/medgemma-1.5-4b-it`, Transformers, bfloat16) in a Gradio app on a GPU: Colab T4 or a Hugging Face Space |
-| Data | Postgres (Neon) via SQLModel and psycopg 3; SQLite for local development |
+| Data | Postgres (Neon) via `pgx`; SQLite (pure Go) for local development |
 | Auth | Google OAuth 2.0 (authorization code + PKCE), HttpOnly session cookie stored hashed |
-| Real-time | FastAPI WebSockets (live queue + call signalling) · WebRTC with STUN and TURN (ExpressTURN or Cloudflare) |
-| Hosting | One Docker image on Render · Neon · Colab or HF Spaces · GitHub Actions CI |
+| Real-time | WebSockets (live queue + call signalling) · WebRTC with STUN and TURN (ExpressTURN or Cloudflare) |
+| Hosting | One Docker image on Render (33 MB, no shell, non-root) · Neon · Colab or HF Spaces · GitHub Actions CI |
 
 ## Run it locally
 
 ```bash
-# Backend (API on :8000)
+# Backend (API on :8000), needs Go 1.26+
 cd backend
-python -m venv .venv
-.venv/Scripts/pip install -r requirements-dev.txt     # macOS/Linux: .venv/bin/pip
 cp .env.example .env                                  # set HF_SPACE_ID; DEV_LOGIN=true
-.venv/Scripts/uvicorn app.main:app --reload
+go run ./cmd/server
 
 # Frontend (on :3000), in a second terminal
 cd frontend
@@ -124,8 +122,9 @@ separate browser windows. Or run the production image with
 ## Checks
 
 ```bash
-cd backend  && .venv/Scripts/ruff check app tests ../model-space ../scripts && .venv/Scripts/pytest
+cd backend  && gofmt -l . && go vet ./... && go test -race ./...
 cd frontend && npm run lint && npm run typecheck && npm run build
+ruff check model-space scripts                         # the Python that remains
 ```
 
 `make help` lists shortcuts (on Windows, run `make` from Git Bash). CI also
@@ -135,9 +134,9 @@ builds the Docker image and checks that it boots and serves the pages.
 
 | Path | Contents |
 |---|---|
-| [backend/](backend/) | FastAPI app: chat, consultations, WebSocket signalling, MedGemma client, sign-in, verification, saved chats |
+| [backend/](backend/) | Go backend: chat, consultations, WebSocket signalling, MedGemma client, sign-in, verification, saved chats ([how it's organised](docs/architecture.md#backend-packages-backend-go)) |
 | [frontend/](frontend/) | Next.js app: chat, account, verification form, professional dashboard, admin review, video call |
-| [model-space/](model-space/) | The Hugging Face Space that serves MedGemma |
+| [model-space/](model-space/) | The model server (Python: PyTorch + Transformers + Gradio) that serves MedGemma on a GPU |
 | [scripts/smoke_test.py](scripts/smoke_test.py) | Multi-browser end-to-end check of the demo |
 | [docs/](docs/) | Architecture, deployment, demo playbook, Phase III requirements |
 | [Dockerfile](Dockerfile) · [render.yaml](render.yaml) | One image; one Render service |

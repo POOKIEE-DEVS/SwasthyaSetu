@@ -229,11 +229,10 @@ relay works. Both run on one machine in the smoke test, so it can't.
 ## Local development
 
 ```bash
-# Backend: API on :8000
+# Backend: API on :8000 (needs Go 1.26+)
 cd backend
-python -m venv .venv && .venv/Scripts/pip install -r requirements-dev.txt   # Windows
 cp .env.example .env            # set HF_SPACE_ID / HF_TOKEN; DEV_LOGIN=true
-.venv/Scripts/uvicorn app.main:app --reload
+go run ./cmd/server
 
 # Frontend: on :3000, calling the API on :8000
 cd frontend
@@ -255,8 +254,8 @@ The full local smoke test (with admin@smoke.test as admin):
 ```bash
 cd frontend && npm run build && cd ../backend
 STATIC_DIR=../frontend/out DEV_LOGIN=true ADMIN_EMAILS=admin@smoke.test \
-  .venv/Scripts/uvicorn app.main:app --port 8000
-python ../scripts/smoke_test.py http://localhost:8000
+  go run ./cmd/server
+python ../scripts/smoke_test.py http://localhost:8000    # pip install playwright
 ```
 
 To run exactly what production runs: `docker compose up --build`, then

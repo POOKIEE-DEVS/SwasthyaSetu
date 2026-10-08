@@ -23,14 +23,18 @@ the demo.
   `frontend/AGENTS.md` and `frontend/node_modules/next/dist/docs/` before
   using unfamiliar APIs. `npm run build` also runs
   `scripts/flatten-segments.mjs` (fixes prefetch 404s in the export).
-- **Backend:** Python, FastAPI, Uvicorn. It serves the API, the WebSockets,
-  and the built frontend from **one origin**.
-- **Data:** Postgres (Neon) via SQLModel; SQLite locally. Tables are created
-  at startup (`create_all`, no migrations yet).
+- **Backend:** Go (`backend/`: `cmd/server` + `internal/*`, standard
+  library HTTP, `coder/websocket`). It serves the API, the WebSockets, and
+  the built frontend from **one origin**. Package map:
+  `docs/architecture.md` §2.
+- **Data:** Postgres (Neon) via `pgx`; SQLite (pure Go) locally. Tables are
+  created at startup (`internal/database/schema.go`, `IF NOT EXISTS`, no
+  migrations yet). Every SQL query lives in `internal/store`.
 - **Auth:** Google OAuth (code + PKCE) done by the backend; HttpOnly session
   cookie, hashed in the database. `DEV_LOGIN=true` for local testing only.
 - **Model:** `google/medgemma-1.5-4b-it` served by `model-space/app.py`
-  (Gradio), called via `gradio_client`. Free: Colab T4 + a `gradio.live`
+  (Gradio, the only Python left), called over Gradio's HTTP API
+  (`internal/ai/gradio.go`). Free: Colab T4 + a `gradio.live`
   link (`model-space/colab.ipynb`). Paid: a Hugging Face GPU Space.
 - **Calls:** WebRTC. The backend relays signalling; TURN from ExpressTURN
   (free, static credentials) or Cloudflare.
@@ -43,7 +47,7 @@ Demo script: `docs/demo.md`. Requirements of record:
 ## Rules
 
 - **Run the backend as exactly one process.** The queue and call rooms live
-  in memory. `--workers` or a second replica silently breaks calls.
+  in memory. A second replica silently breaks calls.
 - **No secrets in the repo.** `HF_TOKEN`, TURN keys, `DATABASE_URL` and the
   Google client secret go in `backend/.env` (gitignored) or the Render and
   Space dashboards.
@@ -52,14 +56,14 @@ Demo script: `docs/demo.md`. Requirements of record:
   never wait on the model, never ask to sign in, and keep working if the
   database is down.
 - **Only verified professionals see patients.** Check it on the server
-  (`require_professional`, `professional_badge_for_session`), never only in
-  the UI.
+  (`requireProfessional`, `verifiedProfessional` in `internal/api`), never
+  only in the UI.
 - **The model gives first-aid information, not diagnosis.** Don't add
   medicine doses or diagnostic claims to prompts or UI.
 - **Commits:** one per logical change, with a detailed message (what, why,
   files, checks). No Claude co-author or attribution lines.
 - **Verify before claiming something works:**
-  - backend: `ruff check` + `pytest`
+  - backend: `gofmt -l .` (no output) + `go vet ./...` + `go test -race ./...`
   - frontend: `lint` + `typecheck` + `build`
   - anything touching chat, calls, sign-in or verification:
     `scripts/smoke_test.py` against a running server
@@ -84,12 +88,16 @@ Demo script: `docs/demo.md`. Requirements of record:
 - [ ] Real call between two laptops on **different networks**
 - [ ] Check real MedGemma replies to the demo sentences, in English and Nepali
 - [ ] Rehearse the 5-minute script (docs/demo.md) and record a backup video
+- [x] Backend rewritten in Go: same API, same database tables, smoke test 14/14 locally
+- [ ] After the Go deploy: check `/health`, then the smoke test against the live URL (§7)
 
 ## Commands
 
 ```bash
-cd backend && .venv/Scripts/pytest && .venv/Scripts/ruff check app tests ../model-space ../scripts
+cd backend && gofmt -l . && go vet ./... && go test -race ./...
+TEST_DATABASE_URL=postgres://... go test ./internal/store/ ./internal/api/   # optional, real Postgres
+ruff check model-space scripts                     # the remaining Python
 cd frontend && npm run lint && npm run typecheck && npm run build
-# Local end-to-end (server with DEV_LOGIN=true ADMIN_EMAILS=admin@smoke.test):
+# Local end-to-end (`go run ./cmd/server` with DEV_LOGIN=true ADMIN_EMAILS=admin@smoke.test):
 python scripts/smoke_test.py http://localhost:8000     # needs `pip install playwright`
 ```

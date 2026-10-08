@@ -29,7 +29,7 @@ flowchart LR
 
     subgraph Render["Render (cloud) · one Docker container · one process"]
         FE["Next.js app<br/>(static files)"]
-        API["FastAPI<br/>REST API /api/v1"]
+        API["Go server<br/>REST API /api/v1"]
         WS["WebSockets<br/>/ws/doctors · /ws/consultations"]
         MEM["In-memory state<br/>waiting queue · call rooms"]
     end
@@ -44,8 +44,8 @@ flowchart LR
 
     P & D & AD -- "HTTPS: pages + API" --> FE & API
     P & D -- "WSS: live queue + call signalling" --> WS
-    API -- "gradio_client /generate" --> LLM
-    API -- "SQL (psycopg)" --> DB
+    API -- "Gradio HTTP API /generate" --> LLM
+    API -- "SQL (pgx)" --> DB
     API -- "OAuth code + PKCE" --> G
     WS --- MEM
     P <-. "WebRTC: audio + video,<br/>peer to peer" .-> D
@@ -57,7 +57,7 @@ The one rule behind the shape: **everything the app serves comes from one
 origin, out of one process.** The website, the API and the WebSockets share
 an address, so there is no CORS to configure and no API address to build into
 the frontend. The live queue and call rooms live in that process's memory, so
-it must run as exactly one process (one worker, one instance).
+it must run as exactly one process (one instance).
 
 ---
 
@@ -66,33 +66,33 @@ it must run as exactly one process (one worker, one instance).
 | Component | Technology | What it does |
 |---|---|---|
 | **Frontend** | Next.js 16 (TypeScript, Tailwind CSS v4, shadcn/ui, Zustand), built as a **static export** | Every page: landing, first-aid chat, request form, video call, professional dashboard, verification form, admin review. Bilingual (English / नेपाली). Installable as a PWA |
-| **Backend** | Python, FastAPI, Uvicorn, **one process** | REST API, WebSocket signalling, serves the built frontend, talks to the model, the database and Google |
+| **Backend** | **Go** (standard-library HTTP server, `coder/websocket`), **one process**, one static binary | REST API, WebSocket signalling, serves the built frontend, talks to the model, the database and Google |
 | **AI model** | `google/medgemma-1.5-4b-it` with Hugging Face Transformers, wrapped in a **Gradio** app (`model-space/app.py`) | Generates first-aid replies. Runs on a GPU: free Colab T4 (public `gradio.live` link) or a paid Hugging Face GPU Space |
-| **Database** | Postgres on **Neon** (serverless), via SQLModel and psycopg 3. SQLite locally | Users, sessions, verification applications and documents, audit log, saved chats, help records |
+| **Database** | Postgres on **Neon** (serverless), via `pgx`. SQLite locally (pure-Go driver) | Users, sessions, verification applications and documents, audit log, saved chats, help records |
 | **Sign-in** | Google OAuth 2.0 (authorization code + PKCE), done by the backend | Patients optional, professionals required. HttpOnly session cookie |
 | **Video** | **WebRTC** in the browser, signalling over our WebSocket, STUN plus a **TURN** relay | Two-way audio and video, peer to peer |
 | **Hosting** | **Render** (Docker, free plan), Neon, Colab or HF Spaces, ExpressTURN | All cloud; nothing runs on our laptops during the demo |
-| **CI** | GitHub Actions | Backend `ruff` + `pytest`, frontend lint + typecheck + build |
+| **CI** | GitHub Actions | Backend `gofmt`, `go vet`, `staticcheck`, `go test -race` (on SQLite and on Postgres); `ruff` for the model server and smoke test; frontend lint + typecheck + build; the Docker image boots |
 
-### Backend modules (`backend/app/`)
+### Backend packages (`backend/`, Go)
 
-| Module | Responsibility |
+Requests come in through `internal/api`, which uses the other packages.
+Only `internal/store` writes SQL, and only `internal/api` speaks HTTP.
+
+| Package | Responsibility |
 |---|---|
-| `main.py` | Builds the app: API routers, WebSocket routes, serves the static frontend, `/health` |
-| `core/config.py` | All settings from environment variables (Render dashboard or `backend/.env`) |
-| `api/chat.py` | `POST /api/v1/chat`: rate limit, off-topic check, urgent check, calls the model, saves the chat for signed-in patients |
-| `ai/prompts.py` | System prompts (English and Nepali), history trimming, urgent-keyword check, off-topic check, cleaning the model's output |
-| `ai/medgemma.py` | Client for the Gradio model app (`gradio_client`), with timeout and reconnect |
-| `api/consultations.py`, `services/consultations.py` | Request a professional, accept (atomic), end; in-memory registry |
-| `realtime/websocket.py` | `/ws/doctors` (live waiting queue) and `/ws/consultations/{id}` (call signalling relay) |
-| `realtime/ice.py` | The STUN and TURN servers each call gets |
-| `api/auth.py`, `services/auth.py` | Google OAuth, sessions, roles, development login (local only) |
-| `api/applications.py`, `services/verification.py`, `services/documents.py` | Verification: form, document checks, status |
-| `api/admin.py` | Admin review: list, view documents, approve, reject, revoke |
-| `api/deps.py` | Who is asking: `current_user`, `require_admin`, **`require_professional`** (the server-side "verified only" check) |
-| `api/chats.py`, `services/chats.py` | Saved chats ("My chats") |
-| `services/help_records.py` | Each professional's "You've helped N people" |
-| `models.py`, `db.py` | Tables and the database connection (non-fatal at startup, retried) |
+| `cmd/server` | The entry point: reads the settings, opens the database (never fatal), starts the HTTP server; graceful shutdown; `server -healthcheck` for the container |
+| `internal/config` | All settings from environment variables (Render dashboard or `backend/.env`) |
+| `internal/api` | Every route: chat, saved chats, consultations and help record, sign-in, verification, admin review, `/health`; the two WebSockets; the static frontend; request ids, logs, CORS. Holds the server-side checks `currentUser`, `requireAdmin` and **`requireProfessional`** ("verified only") |
+| `internal/ai` | System prompts (English and Nepali), history trimming, urgent and off-topic checks, cleaning the model's output, and the client for the Gradio model app (timeout, reconnect, one fallback retry) |
+| `internal/consult` | In-memory registry: request a professional, accept (atomic, under a lock), end |
+| `internal/realtime` | The WebSocket hub (live queue and call rooms, one writer per socket, pings) and the STUN/TURN servers each call gets |
+| `internal/auth` | Google OAuth with PKCE, session tokens (only their hash is stored) |
+| `internal/verify` | What each profession must submit, and document type checks from the file's bytes |
+| `internal/store` | Every SQL query: accounts, sessions, applications, documents, audit log, saved chats, help records |
+| `internal/database` | Postgres or SQLite behind one API; creates the tables at startup and retries while the database is down |
+| `internal/ratelimit` | 15 chat messages a minute per client |
+| `internal/logging` | Structured logs: readable lines locally, JSON with `LOG_JSON=true` |
 
 ### Frontend pages (`frontend/app/`)
 
@@ -113,7 +113,7 @@ it must run as exactly one process (one worker, one instance).
 sequenceDiagram
     autonumber
     participant B as Patient's browser
-    participant API as FastAPI /api/v1/chat
+    participant API as Go server /api/v1/chat
     participant M as Gradio app (GPU)
     participant LLM as MedGemma 1.5 4B
 
@@ -124,7 +124,7 @@ sequenceDiagram
         API-->>B: fixed sentence: "I can only help with health and first-aid questions..."
     else health question
         API->>API: build prompt: short system prompt (English, or written in Nepali<br/>for a Nepali message) + last 8 turns, patient's words unchanged
-        API->>M: gradio_client predict("/generate") (timeout 120 s)
+        API->>M: POST /gradio_api/call/generate, read the result (timeout 120 s)
         M->>M: Gemma chat template, fit to 3000 input tokens
         M->>LLM: generate (greedy, max 400 new tokens), thinking switched off
         LLM-->>M: reply
@@ -188,7 +188,7 @@ How the pieces work and why:
 sequenceDiagram
     autonumber
     participant P as Patient browser
-    participant S as FastAPI (one process)
+    participant S as Go server (one process)
     participant D as Professional browser
 
     D->>S: WSS /ws/doctors (session cookie checked: verified only)
@@ -197,7 +197,7 @@ sequenceDiagram
     S->>S: create consultation + secret patient token (in memory)
     S-->>D: queue update → tone plays, patient appears with the shared chat
     S-->>P: call ticket (room token + ICE servers)
-    D->>S: POST /consultations/{id}/accept (require_professional)
+    D->>S: POST /consultations/{id}/accept (requireProfessional)
     S->>S: atomic accept: first professional wins, others get 409
     S-->>D: call ticket (own room token) + badge "Verified Doctor · name"
     P->>S: WSS /ws/consultations/{id}?token=… (role from token)
@@ -219,9 +219,11 @@ sequenceDiagram
 - **Queue.** Waiting patients live in an in-memory registry. Verified
   professionals hold a WebSocket open to `/ws/doctors`. Every change is
   pushed to them at once, and the browser plays a tone for a new patient.
-- **Accept is atomic.** The registry runs on one asyncio event loop and the
-  accept never awaits, so two professionals pressing *Accept* together can't
-  both win.
+- **Accept is atomic.** Every change to the registry happens under one lock,
+  so two professionals pressing *Accept* together can't both win.
+- **Live updates in order.** Each WebSocket has its own writer and queue, so
+  a slow browser never holds up the others, and a professional never gets an
+  older queue after a newer one.
 - **Room tokens.** Each participant gets a random secret token for the
   call's WebSocket. The token decides the role (patient or professional),
   and a third person can't join. Tokens are never in the queue data.
@@ -281,7 +283,7 @@ flowchart LR
   PDF), never from the name. Photos are shrunk on the phone before upload,
   up to 5 MB each. They are stored in Postgres, only the admin can view
   them, and every submission, approval and rejection goes in an audit log.
-- **Enforced on the server.** `require_professional` runs on every
+- **Enforced on the server.** `requireProfessional` runs on every
   request to the waiting list and on accept. The queue WebSocket checks the
   session too and closes with code 4401 if the user isn't verified. Hiding
   a button is never the only guard.
@@ -315,8 +317,8 @@ sign-in, verification and history wait for it.
 
 ```mermaid
 flowchart TB
-    GH["GitHub repo<br/>POOKIEE-DEVS/SwasthyaSetu"] -->|"push to main"| CI["GitHub Actions<br/>ruff · pytest · lint · typecheck · build"]
-    GH -->|"auto deploy"| RB["Render · Docker web service (free)<br/>1 instance, 1 Uvicorn process<br/>health check /health"]
+    GH["GitHub repo<br/>POOKIEE-DEVS/SwasthyaSetu"] -->|"push to main"| CI["GitHub Actions<br/>go vet · go test · lint · typecheck · build"]
+    GH -->|"auto deploy"| RB["Render · Docker web service (free)<br/>1 instance, 1 Go process<br/>health check /health"]
     GH -->|"notebook clones the repo"| CO["Google Colab · free T4 GPU<br/>model-space/app.py + gradio.live link"]
     RB -->|"HF_SPACE_ID = gradio.live link"| CO
     RB -->|"DATABASE_URL"| NE[("Neon Postgres<br/>serverless")]
@@ -325,10 +327,11 @@ flowchart TB
 ```
 
 - **One Docker image** (`Dockerfile`, multi-stage). Stage 1 builds the
-  Next.js static export with Node. Stage 2 is Python 3.12 with the backend,
-  which copies in the built `out/` folder and serves it. `render.yaml`
-  describes the service (Docker runtime, free plan, `/health` check) and
-  lists its environment variables.
+  Next.js static export with Node. Stage 2 builds the Go backend into one
+  static binary. Stage 3 runs that binary on a minimal base image (no shell,
+  non-root user, 33 MB in all), serving the built `out/` folder.
+  `render.yaml` describes the service (Docker runtime, free plan, `/health`
+  check) and lists its environment variables.
 - **Secrets never live in the repo.** `HF_TOKEN`, `DATABASE_URL`, the
   Google client secret and the TURN credentials are set in the Render
   dashboard (or a gitignored `backend/.env` locally). `HF_TOKEN` is also a
@@ -369,10 +372,12 @@ flowchart TB
 
 ## 8. Quality checks
 
-- **Backend:** `ruff` + `pytest` (146 tests). They cover chat, prompts and
-  cleaning, off-topic and urgent detection, consultations and atomic
-  accept, WebSocket signalling and verification checks, sign-in and
-  sessions, admin review, saved chats and help records.
+- **Backend:** `gofmt`, `go vet`, `staticcheck` and `go test -race` (166
+  tests, run on SQLite and again on Postgres). They cover chat, prompts and
+  cleaning, off-topic and urgent detection, the model client,
+  consultations and atomic accept, WebSocket signalling with real sockets,
+  verification checks, sign-in and sessions, admin review, saved chats and
+  help records. Every test of the earlier Python backend was ported.
 - **Frontend:** ESLint, TypeScript and a production build.
 - **End to end:** `scripts/smoke_test.py` runs the whole demo in real
   Chrome windows (14 steps), with fake camera and mic:
