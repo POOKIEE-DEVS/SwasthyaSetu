@@ -3,6 +3,8 @@ module github.com/POOKIEE-DEVS/SwasthyaSetu/backend
 go 1.26.5
 
 require (
+	github.com/chromedp/cdproto v0.157.8
+	github.com/chromedp/chromedp v0.20.1
 	github.com/coder/websocket v1.8.15
 	github.com/jackc/pgx/v5 v5.11.0
 	modernc.org/sqlite v1.60.1
@@ -10,6 +12,7 @@ require (
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/go-json-experiment/json v0.0.0-20260213210345-44df1a37e875 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
