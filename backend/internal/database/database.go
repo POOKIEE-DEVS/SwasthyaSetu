@@ -100,9 +100,9 @@ func openPostgres(url string) (*sql.DB, error) {
 	return pool, nil
 }
 
-// openSQLite takes SQLAlchemy-style URLs, as the Python backend did:
-// sqlite:///relative.db, sqlite:////absolute.db, and sqlite:// or
-// sqlite:///:memory: for an in-memory database.
+// openSQLite takes these URLs: sqlite:///relative.db,
+// sqlite:////absolute.db, and sqlite:// or sqlite:///:memory: for an
+// in-memory database.
 func openSQLite(url string) (*sql.DB, error) {
 	if !strings.HasPrefix(url, "sqlite:") {
 		return nil, errors.New(`DATABASE_URL must start with "postgres://", "postgresql://" or "sqlite:///"`)
@@ -115,6 +115,11 @@ func openSQLite(url string) (*sql.DB, error) {
 	// _time_format=sqlite stores times as "2006-01-02 15:04:05.999999999-07:00",
 	// which reads back as time.Time and sorts correctly as text.
 	dsn := path + "?_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_time_format=sqlite"
+	if path != ":memory:" {
+		// Write-ahead logging: a save is one quick append instead of
+		// several disk flushes (slow on Windows laptops).
+		dsn += "&_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)"
+	}
 	pool, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err
