@@ -10,7 +10,7 @@ import (
 )
 
 // The same client acts as patient (no login needed) and as a verified
-// professional (signed in), as in the Python tests.
+// professional (signed in).
 
 func (c *client) requestProfessional(name string) map[string]any {
 	c.e.t.Helper()

@@ -37,8 +37,7 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
-// Regression from the Python version: plain comma-separated values once
-// crashed startup.
+// Plain comma-separated values, as typed in a dashboard, must parse.
 func TestListValuesParse(t *testing.T) {
 	c := load(t, map[string]string{
 		"CORS_ORIGINS": "http://localhost:3000, https://demo.example",

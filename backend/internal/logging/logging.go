@@ -14,7 +14,7 @@ import (
 func New(w io.Writer, level string, json bool) *slog.Logger {
 	opts := &slog.HandlerOptions{Level: ParseLevel(level)}
 	if json {
-		// The same keys the Python backend used, so existing log queries work.
+		// "timestamp" and "message", the usual names for log aggregators.
 		opts.ReplaceAttr = func(groups []string, a slog.Attr) slog.Attr {
 			if len(groups) == 0 {
 				switch a.Key {

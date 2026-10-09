@@ -34,8 +34,8 @@ func Now() time.Time { return time.Now().UTC().Truncate(time.Microsecond) }
 func Unix(t time.Time) float64 { return float64(t.UnixMicro()) / 1e6 }
 
 // timeCol scans a timestamp from either driver. Postgres returns time.Time;
-// SQLite usually does too, but rows written by other tools (the Python
-// backend wrote "2006-01-02 15:04:05.999999") may come back as text.
+// SQLite usually does too, but rows written by other tools (for example
+// "2006-01-02 15:04:05.999999", with no zone) may come back as text.
 type timeCol struct{ dst *time.Time }
 
 func (c timeCol) Scan(src any) error {

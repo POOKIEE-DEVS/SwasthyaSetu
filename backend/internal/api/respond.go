@@ -96,5 +96,5 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	return nil
 }
 
-// chars counts characters, not bytes, as Python's len() did.
+// chars counts characters, not bytes: "नमस्ते" is 6, not 18.
 func chars(s string) int { return utf8.RuneCountInString(s) }

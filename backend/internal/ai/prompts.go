@@ -59,9 +59,10 @@ const FallbackSystemPrompt = "You are a first-aid assistant for people in Nepal.
 	"not diagnose and never give medicine doses. For anything life-threatening, " +
 	"tell them to call 102 for an ambulance first."
 
-// A note on regular expressions: Go's \b and \w only know ASCII letters,
-// where Python's know every script. The English words below behave the
-// same; the Nepali ones are matched without \b, as they always were.
+// A note on regular expressions: Go's \b and \w only know ASCII letters.
+// That suits the English words below; the Nepali ones are matched without
+// \b, and the one place a Nepali word boundary matters (the "ठीक छ" opener)
+// checks it by hand.
 
 // urgentRE is a keyword check for obvious emergencies. It is deliberately
 // crude and conservative: its only job is to surface the "call 102 / talk
@@ -162,7 +163,8 @@ func isPreamble(paragraph string) bool {
 	return len(preambleMarkerRE.FindAllStringIndex(paragraph, -1)) >= 2
 }
 
-// isWordRune matches Python's \w: letters, numbers and underscore.
+// isWordRune is a word character in any script: a letter, a number or an
+// underscore.
 func isWordRune(r rune) bool { return unicode.IsLetter(r) || unicode.IsNumber(r) || r == '_' }
 
 // StripPreamble drops leading paragraphs in which the model talks about its

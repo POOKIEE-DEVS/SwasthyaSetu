@@ -214,7 +214,7 @@ func (g *Gradio) send(ctx context.Context, method, endpoint string, body []byte)
 	req.Header.Set("User-Agent", "swasthyasetu-backend")
 	if g.token != "" && isHuggingFace(req.URL) {
 		req.Header.Set("Authorization", "Bearer "+g.token)
-		// What gradio_client sends; Spaces accept either.
+		// Hugging Face Spaces accept either header.
 		req.Header.Set("X-HF-Authorization", "Bearer "+g.token)
 	}
 	resp, err := g.client.Do(req)

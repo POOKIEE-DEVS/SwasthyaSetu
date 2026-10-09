@@ -31,7 +31,7 @@ const (
 const (
 	sendQueue    = 64
 	writeTimeout = 10 * time.Second
-	// Like uvicorn's defaults: a ping every 20 seconds keeps proxies from
+	// A ping every 20 seconds keeps proxies from
 	// closing quiet sockets, and a missing pong within 20 seconds means the
 	// browser is gone.
 	pingInterval = 20 * time.Second

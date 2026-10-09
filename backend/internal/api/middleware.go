@@ -142,7 +142,7 @@ func cors(origins []string, next http.Handler) http.Handler {
 
 // clientIP is the address the rate limit counts. Behind Render's proxy the
 // connection comes from the proxy, so the first X-Forwarded-For entry is
-// used, as uvicorn's --proxy-headers did.
+// used.
 func clientIP(r *http.Request) string {
 	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
 		first, _, _ := strings.Cut(forwarded, ",")

@@ -1,8 +1,8 @@
 // Package config loads the runtime settings from environment variables, and
 // from backend/.env when it exists (real environment variables win).
 //
-// Every name and default matches the Python backend this replaced, so the
-// Render dashboard and local .env files keep working unchanged.
+// The names are the ones set in the Render dashboard and in local .env
+// files (see backend/.env.example).
 package config
 
 import (

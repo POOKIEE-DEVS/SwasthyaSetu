@@ -152,7 +152,7 @@ func formError(err error) error {
 	return invalid("The form could not be read. Please try again.")
 }
 
-// parseBool reads a form checkbox the way the Python backend did.
+// parseBool reads a form checkbox: true/false, 1/0, yes/no, on/off.
 func parseBool(value string) (bool, bool) {
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "", "0", "false", "f", "no", "n", "off":

@@ -10,7 +10,7 @@ func TestParseTimeReadsEveryStoredForm(t *testing.T) {
 	for _, src := range []any{
 		want,
 		want.In(time.FixedZone("NPT", 5*3600+45*60)),
-		"2026-10-04 09:30:15.123456",       // written by the Python backend
+		"2026-10-04 09:30:15.123456",       // older rows: no zone
 		"2026-10-04 09:30:15.123456+00:00", // written by this one
 		[]byte("2026-10-04T15:15:15.123456+05:45"),
 	} {

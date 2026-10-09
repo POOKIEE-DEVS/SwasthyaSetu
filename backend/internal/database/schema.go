@@ -2,9 +2,9 @@ package database
 
 import "strings"
 
-// The tables, exactly as the Python backend (SQLModel) created them, so an
-// existing database keeps working untouched. "IF NOT EXISTS" makes setup
-// idempotent: it only adds what is missing, like SQLModel's create_all.
+// The tables. They match the live Neon database exactly (names, types,
+// indexes), so it keeps working untouched. "IF NOT EXISTS" makes setup
+// idempotent: it only adds what is missing.
 // Times are stored in UTC and sent to clients as Unix seconds.
 //
 // Column changes to existing tables need a real migration, not an edit here.
