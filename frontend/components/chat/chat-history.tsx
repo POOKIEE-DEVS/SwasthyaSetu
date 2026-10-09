@@ -21,6 +21,9 @@ export function ChatHistory({ onOpened }: { onOpened: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
+  // Reloads when the current chat gets its id: a chat started before
+  // signing in is saved a moment after sign-in, maybe after this list
+  // first loaded.
   useEffect(() => {
     let cancelled = false;
     api.chats
@@ -32,7 +35,7 @@ export function ChatHistory({ onOpened }: { onOpened: () => void }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [currentId]);
 
   const open = async (id: string) => {
     setBusyId(id);
