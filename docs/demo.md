@@ -22,7 +22,7 @@ laptop is signed in as the **admin**, for the trust beat.
 **The day before**
 - [ ] The demo doctor's Google account has applied and the admin has **approved** it
 - [ ] One more application (a nurse or paramedic shows the new roles best) is left **pending**, to show on the admin page
-- [ ] `python scripts/smoke_test.py <URL> --pro-session <cookie>` prints `ALL GOOD` (see deployment.md §7)
+- [ ] `cd backend && go run ./cmd/smoketest <URL> --pro-session <cookie>` prints `ALL GOOD` (see deployment.md §7)
 - [ ] One real call between two laptops on **different networks** (Wi-Fi + phone hotspot)
 - [ ] Try the exact demo sentences on the real model and check the replies are sensible, in both languages
 - [ ] Record a backup video of the full flow

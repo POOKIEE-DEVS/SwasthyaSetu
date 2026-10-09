@@ -72,7 +72,7 @@ it must run as exactly one process (one instance).
 | **Sign-in** | Google OAuth 2.0 (authorization code + PKCE), done by the backend | Patients optional, professionals required. HttpOnly session cookie |
 | **Video** | **WebRTC** in the browser, signalling over our WebSocket, STUN plus a **TURN** relay | Two-way audio and video, peer to peer |
 | **Hosting** | **Render** (Docker, free plan), Neon, Colab or HF Spaces, ExpressTURN | All cloud; nothing runs on our laptops during the demo |
-| **CI** | GitHub Actions | Backend `gofmt`, `go vet`, `staticcheck`, `go test -race` (on SQLite and on Postgres); `ruff` for the model server and smoke test; frontend lint + typecheck + build; the Docker image boots |
+| **CI** | GitHub Actions | Backend `gofmt`, `go vet`, `staticcheck`, `go test -race` (on SQLite and on Postgres); frontend lint + typecheck + build; the Docker image boots |
 
 ### Backend packages (`backend/`, Go)
 
@@ -82,6 +82,7 @@ Only `internal/store` writes SQL, and only `internal/api` speaks HTTP.
 | Package | Responsibility |
 |---|---|
 | `cmd/server` | The entry point: reads the settings, opens the database (never fatal), starts the HTTP server; graceful shutdown; `server -healthcheck` for the container |
+| `cmd/smoketest` | The end-to-end test: the whole demo in real Chrome windows (14 steps) |
 | `internal/config` | All settings from environment variables (Render dashboard or `backend/.env`) |
 | `internal/api` | Every route: chat, saved chats, consultations and help record, sign-in, verification, admin review, `/health`; the two WebSockets; the static frontend; request ids, logs, CORS. Holds the server-side checks `currentUser`, `requireAdmin` and **`requireProfessional`** ("verified only") |
 | `internal/ai` | System prompts (English and Nepali), history trimming, urgent and off-topic checks, cleaning the model's output, and the client for the Gradio model app (timeout, reconnect, one fallback retry) |
@@ -377,9 +378,9 @@ flowchart TB
   cleaning, off-topic and urgent detection, the model client,
   consultations and atomic accept, WebSocket signalling with real sockets,
   verification checks, sign-in and sessions, admin review, saved chats and
-  help records. Every test of the earlier Python backend was ported.
+  help records. A guide to every package: [go-backend.md](go-backend.md).
 - **Frontend:** ESLint, TypeScript and a production build.
-- **End to end:** `scripts/smoke_test.py` runs the whole demo in real
+- **End to end:** `go run ./cmd/smoketest <url>` (in `backend/`) runs the whole demo in real
   Chrome windows (14 steps), with fake camera and mic:
   1. A professional applies with documents, the admin approves, and the
      professional goes online.

@@ -26,14 +26,15 @@ the demo.
 - **Backend:** Go (`backend/`: `cmd/server` + `internal/*`, standard
   library HTTP, `coder/websocket`). It serves the API, the WebSockets, and
   the built frontend from **one origin**. Package map:
-  `docs/architecture.md` §2.
+  `docs/go-backend.md` (and `docs/architecture.md` §2).
 - **Data:** Postgres (Neon) via `pgx`; SQLite (pure Go) locally. Tables are
   created at startup (`internal/database/schema.go`, `IF NOT EXISTS`, no
   migrations yet). Every SQL query lives in `internal/store`.
 - **Auth:** Google OAuth (code + PKCE) done by the backend; HttpOnly session
   cookie, hashed in the database. `DEV_LOGIN=true` for local testing only.
 - **Model:** `google/medgemma-1.5-4b-it` served by `model-space/app.py`
-  (Gradio, the only Python left), called over Gradio's HTTP API
+  (Gradio; the only non-Go, non-TypeScript code, because the model needs
+  PyTorch), called over Gradio's HTTP API
   (`internal/ai/gradio.go`). Free: Colab T4 + a `gradio.live`
   link (`model-space/colab.ipynb`). Paid: a Hugging Face GPU Space.
 - **Calls:** WebRTC. The backend relays signalling; TURN from ExpressTURN
@@ -66,7 +67,7 @@ Demo script: `docs/demo.md`. Requirements of record:
   - backend: `gofmt -l .` (no output) + `go vet ./...` + `go test -race ./...`
   - frontend: `lint` + `typecheck` + `build`
   - anything touching chat, calls, sign-in or verification:
-    `scripts/smoke_test.py` against a running server
+    `go run ./cmd/smoketest <url>` (in `backend/`) against a running server
 
 ## Ship list
 
@@ -96,8 +97,7 @@ Demo script: `docs/demo.md`. Requirements of record:
 ```bash
 cd backend && gofmt -l . && go vet ./... && go test -race ./...
 TEST_DATABASE_URL=postgres://... go test ./internal/store/ ./internal/api/   # optional, real Postgres
-ruff check model-space scripts                     # the remaining Python
 cd frontend && npm run lint && npm run typecheck && npm run build
 # Local end-to-end (`go run ./cmd/server` with DEV_LOGIN=true ADMIN_EMAILS=admin@smoke.test):
-python scripts/smoke_test.py http://localhost:8000     # needs `pip install playwright`
+cd backend && go run ./cmd/smoketest http://localhost:8000   # needs Chrome
 ```

@@ -192,8 +192,8 @@ session of your already verified demo professional:
 2. Run:
 
 ```bash
-pip install playwright
-python scripts/smoke_test.py https://swasthyasetu-xxxx.onrender.com --pro-session <that value>
+cd backend    # needs Go 1.26+ and Chrome
+go run ./cmd/smoketest https://swasthyasetu-xxxx.onrender.com --pro-session <that value>
 ```
 
 It runs the demo in Chrome windows: the professional goes online, chat,
@@ -255,7 +255,7 @@ The full local smoke test (with admin@smoke.test as admin):
 cd frontend && npm run build && cd ../backend
 STATIC_DIR=../frontend/out DEV_LOGIN=true ADMIN_EMAILS=admin@smoke.test \
   go run ./cmd/server
-python ../scripts/smoke_test.py http://localhost:8000    # pip install playwright
+go run ./cmd/smoketest http://localhost:8000    # in a second terminal, needs Chrome
 ```
 
 To run exactly what production runs: `docker compose up --build`, then
