@@ -32,15 +32,12 @@ test-postgres: ## Backend store and API tests against Postgres: make test-postgr
 lint: ## Lint everything
 	cd backend && test -z "$$(gofmt -l .)" && go vet ./...
 	cd frontend && npm run lint && npm run typecheck
-	ruff check model-space scripts
 
-format: ## Format Go and Python code
+format: ## Format the Go code
 	cd backend && gofmt -w .
-	ruff format model-space scripts
 
 check: lint test ## Everything CI runs (except Postgres and the Docker job)
 	cd backend && go test -race ./...
-	ruff format --check model-space scripts
 	cd frontend && npm run build
 
 up: ## Build and run the production Docker image on :8000
@@ -48,4 +45,4 @@ up: ## Build and run the production Docker image on :8000
 
 smoke: ## Two-browser demo check: make smoke URL=https://your-app.onrender.com
 	@test -n "$(URL)" || (echo 'Usage: make smoke URL=https://...' && exit 1)
-	python scripts/smoke_test.py $(URL)
+	cd backend && go run ./cmd/smoketest $(URL)

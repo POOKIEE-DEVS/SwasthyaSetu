@@ -9,15 +9,13 @@
 # Go build output
 /backend/server
 /backend/server.exe
+/backend/smoketest
+/backend/smoketest.exe
 /backend/bin/
 
-# Python (the model server and the smoke test)
+# Caches of the model server (model-space/), if it is run on a laptop
 __pycache__/
-*.py[cod]
 .venv/
-venv/
-.pytest_cache/
-.ruff_cache/
 
 # Node / Next.js
 node_modules/

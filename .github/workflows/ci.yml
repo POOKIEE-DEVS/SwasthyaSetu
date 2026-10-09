@@ -46,20 +46,6 @@ jobs:
         env:
           TEST_DATABASE_URL: postgres://postgres:ci@localhost:5432/swasthya?sslmode=disable
 
-  python-tools:
-    name: Model server and smoke test (Python lint)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install "ruff>=0.8"
-      - name: Lint
-        run: ruff check model-space scripts
-      - name: Format
-        run: ruff format --check model-space scripts
-
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
